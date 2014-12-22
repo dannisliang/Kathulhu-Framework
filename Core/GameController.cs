@@ -19,6 +19,7 @@
         void Awake()
         {
             Instance = this;
+            tag = "GameController";
         }
 
     }
