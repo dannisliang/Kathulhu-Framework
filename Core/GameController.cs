@@ -46,7 +46,7 @@
         //INSTANCE MEMBERS
         //---------------------------------------
 
-        private static List<SceneManager> _sceneManagers;
+        private List<SceneManager> _sceneManagers;
 
         private LoadSceneStartedEvent loadSceneEvent;        
         private LoadSceneCompletedEvent loadSceneCompletedEvent;
@@ -83,6 +83,12 @@
             //Raise "Load Scene" Event
             loadSceneEvent.sceneName = transition.sceneName;
             EventDispatcher.Event( loadSceneEvent );
+
+            if ( !transition.additive )
+            {
+                foreach ( SceneManager manager in _sceneManagers )
+                    manager.UnloadScene();
+            }
 
             //Load the scene
             if ( Application.HasProLicense() && transition.useAsync )

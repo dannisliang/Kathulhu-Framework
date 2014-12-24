@@ -3,8 +3,16 @@
     using UnityEngine;
     using System.Collections;
 
-    public class SceneManager : MonoBehaviour
+
+    /// <summary>
+    /// Abstract scene manager component that registers to the GameController and receives callbacks for the scene loading process.
+    /// Override the appropriate methods in the concrete class to add scene loading logic.
+    /// </summary>
+    public abstract class SceneManager : MonoBehaviour
     {
+
+        [SerializeField]
+        private string sceneName;//set in the inspector
 
         /// <summary>
         /// The name of the scene this SceneManager should manage
@@ -17,7 +25,7 @@
         protected virtual void Awake()
         {
             GameController.Instance.RegisterSceneManager( this );
-            SceneName = Application.loadedLevelName;
+            SceneName = sceneName;
         }
 
         /// <summary>
@@ -26,7 +34,6 @@
         public virtual void OnLoadSceneStart()
         {
             //
-            Debug.LogWarning("OnLoadSceneStart. scene->" + SceneName);
         }
 
         /// <summary>
@@ -34,7 +41,6 @@
         /// </summary>
         public virtual IEnumerator Load()
         {
-            Debug.Log( "Scene load coroutine. scene->" + SceneName );
             yield break;
         }
 
@@ -44,7 +50,14 @@
         public virtual void OnLoadSceneCompleted() 
         {
             //
-            Debug.LogWarning( "OnLoadSceneCompleted. scene->" + SceneName );
+        }
+
+        /// <summary>
+        /// Callback when the application loads another scene (non-additive) and this one should be unloaded
+        /// </summary>
+        public virtual void UnloadScene()
+        {
+            //
         }
 
         protected virtual void OnDestroy()
