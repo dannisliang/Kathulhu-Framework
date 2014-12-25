@@ -22,8 +22,21 @@
             protected set; 
         }
 
+        /// <summary>
+        /// A scene specific registry for objects that should not live outside of this scene. 
+        /// </summary>
+        public virtual IRegistry SceneRegistry
+        {
+            get { return _registry; }
+        }
+
+
+        private IRegistry _registry;
+
         protected virtual void Awake()
         {
+            _registry = new GameRegistry();
+
             GameController.Instance.RegisterSceneManager( this );
             SceneName = sceneName;
         }

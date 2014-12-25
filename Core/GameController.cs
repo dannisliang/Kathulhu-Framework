@@ -23,6 +23,15 @@
         }
 
         /// <summary>
+        /// Returns the active scene manager. The active SceneManager is the last SceneManager that was added from a non-additive transition 
+        /// (ie. calling an additive scene load doesn't overwrite the active SceneManager)
+        /// </summary>
+        public static SceneManager ActiveSceneManager
+        {
+            get { return Instance == null ? null : Instance._activeSceneManager; }
+        }
+
+        /// <summary>
         /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
         /// </summary>
         /// <param name="scene">The name of the scene to load</param>
@@ -39,14 +48,14 @@
         }
 
 
-        private static GameRegistry _registry;        
-
+        private static GameRegistry _registry;
 
         //---------------------------------------
         //INSTANCE MEMBERS
         //---------------------------------------
 
         private List<SceneManager> _sceneManagers;
+        private SceneManager _activeSceneManager;
 
         private LoadSceneStartedEvent loadSceneEvent;        
         private LoadSceneCompletedEvent loadSceneCompletedEvent;
@@ -84,6 +93,7 @@
             loadSceneEvent.sceneName = transition.sceneName;
             EventDispatcher.Event( loadSceneEvent );
 
+            //Unload current scenes if scene load is not additive
             if ( !transition.additive )
             {
                 foreach ( SceneManager manager in _sceneManagers )
@@ -110,6 +120,9 @@
             SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName );
             if ( sceneManager != null )
             {
+                if ( !transition.additive )
+                    _activeSceneManager = sceneManager;
+
                 sceneManager.OnLoadSceneStart();
 
                 Coroutine sceneLoadCoroutine = sceneManager.StartCoroutine( sceneManager.Load() );
@@ -117,6 +130,7 @@
 
                 sceneManager.OnLoadSceneCompleted();
             }
+            else if (!transition.additive) _activeSceneManager = null;
 
         }
 
