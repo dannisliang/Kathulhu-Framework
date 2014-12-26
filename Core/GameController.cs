@@ -54,17 +54,21 @@
         //INSTANCE MEMBERS
         //---------------------------------------
 
+        public GameObject LoadingScreenPrefab;//set in the inspector
+
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
 
-        private LoadSceneStartedEvent loadSceneEvent;        
+        private LoadSceneStartedEvent loadSceneEvent;
+        private LoadSceneProgressUpdateEvent loadSceneProgressUpdateEvent;
         private LoadSceneCompletedEvent loadSceneCompletedEvent;
 
         void Awake()
         {
             _sceneManagers = new List<SceneManager>();
 
-            loadSceneEvent = new LoadSceneStartedEvent();            
+            loadSceneEvent = new LoadSceneStartedEvent();
+            loadSceneProgressUpdateEvent = new LoadSceneProgressUpdateEvent();
             loadSceneCompletedEvent = new LoadSceneCompletedEvent();
 
             Instance = this;
@@ -93,9 +97,17 @@
             loadSceneEvent.sceneName = transition.sceneName;
             EventDispatcher.Event( loadSceneEvent );
 
-            //Unload current scenes if scene load is not additive
+            //Add loading screen and Unload current scenes if scene load is not additive
+            LoadingScreen loadingScreen = null;
             if ( !transition.additive )
             {
+                //Add loading screen
+                if ( LoadingScreenPrefab != null )
+                {
+                    GameObject loadingScreenInstance = Instantiate( LoadingScreenPrefab, Vector3.zero, Quaternion.identity ) as GameObject;
+                    loadingScreen = loadingScreenInstance.GetComponent<LoadingScreen>();
+                }
+
                 foreach ( SceneManager manager in _sceneManagers )
                     manager.UnloadScene();
             }
@@ -117,7 +129,7 @@
             }
 
             //Setup the scene via the scene manager
-            SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName );
+            SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName ); 
             if ( sceneManager != null )
             {
                 if ( !transition.additive )
@@ -131,6 +143,15 @@
                 sceneManager.OnLoadSceneCompleted();
             }
             else if (!transition.additive) _activeSceneManager = null;
+
+            //Remove loading screen
+            if ( loadingScreen != null ) {
+                Destroy( loadingScreen.gameObject );
+            }
+
+            //Raise "Scene Loaded" Event
+            loadSceneCompletedEvent.sceneName = transition.sceneName;
+            EventDispatcher.Event( loadSceneCompletedEvent );
 
         }
 
@@ -154,6 +175,15 @@
     {
         public string sceneName;
         public bool additive;
+    }
+
+    /// <summary>
+    /// Event for notifying subscribers that a scene load has progressed
+    /// </summary>
+    public class LoadSceneProgressUpdateEvent : Event
+    {
+        public float progress;
+        public string message;
     }
 
     /// <summary>
