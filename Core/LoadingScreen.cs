@@ -8,6 +8,7 @@
     {
 
         public Image loadingBarFilledImage;//set in the inspector
+        public Text message;//set in the inspector
 
         protected virtual void Awake()
         {
@@ -25,9 +26,10 @@
         protected virtual void OnProgressChange( LoadSceneProgressUpdateEvent evt ) 
         {
             if ( loadingBarFilledImage != null )
-            {
                 loadingBarFilledImage.fillAmount = evt.progress;
-            }
+
+            if (message != null)
+                message.text = evt.message;
         }
 
         protected virtual void OnDestroy()
