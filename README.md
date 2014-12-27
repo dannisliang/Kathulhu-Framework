@@ -75,3 +75,30 @@ GameObject go = GameController.Registry.Resolve<GameObject>("myobject");
 The GameController contains methods to load another scene or load additive another scene. Using these methods instead of the built-in Application.LoadLevel methods in Unity allows the GameController to use a SceneManager to handle a scene's setup. The GameController keeps a list of all SceneManager objects and can use them to initiate a scene load coroutine or unload a scene when switching to another scene. The GameController will also instantiate a LoadingScreen prefab that can hide the content of a scene while it's being set up and display the loading progress.
 
 To make use of scene transitions and the loading screen, take a look at the "Examples/SceneTransitions" folder in this framerwork. Important things to remember are that you need to specify a prefab for the loading screen in your GameController and that every scene that you want to load need to have a SceneManager script to handle the loading of the scene and the SceneManager need it's Scene Name field populated with the name of the scene this SceneManager is handling.
+
+note : I'll add a short tutorial here at some point, when I'm done working on the rest of the framework
+
+## POOLING
+
+Pooling is done using 2 classes ; the ObjectPool and the PoolsManager. The ObjectPool is an object holding the pool for one distinct prefab. The pool create an instance of it's prefab and can keep a list of unused instances and return one when needed. It can also pre-load a specified amount of the prefab when initialized. The PoolsManager is a MonoBehavior that can manage and hold a list of all ObjectPools. You can specify the ObjectPools you need in the PoolsManager inspector by specifying the size of the ObjectPools list and setting a prefab, an amount of objects to pre-load and a parent transform for inactive objects of the pool (if null, will be set by default to the PoolsManager transform).
+
+The PoolsManager instance can be accessed via the PoolsManager.Instance static property. You can get an instance of a prefab from the PoolsManager like this :
+
+```c#
+PoolsManager.Instance.Spawn( "myPrefabName");
+```
+
+You can return a prefab to it's pool and deactivate it like this :
+
+```c#
+PoolsManager.Instance.Deactivate( gameObject );
+```
+
+It is important that the instance's name is never changed. The PoolsManager returns a gameObject to a pool that manages a Prefab with the same name as the GameObject. 
+
+You can add a prefab to the PoolsManager by code instead of using the inspector like this :
+
+```c#
+GameObject aPrefab = Resources.Load("aPrefab") as GameObject;
+PoolsManager.Instance.Add( aPrefab );
+```
