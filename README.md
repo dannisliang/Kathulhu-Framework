@@ -62,6 +62,7 @@ The files in the 'Core' folder contains classes and interfaces that are related 
 The GameController holds a registry that can hold references to any type of object via a specified identifier. This is useful to store references to important objects in the game.
 
 Example usage:
+
 ```c#
 //Register a GameObject type object with identifier "myobject"
 GameController.Registry.Register<GameObject>( this.gameObject, "myobject");
@@ -69,6 +70,17 @@ GameController.Registry.Register<GameObject>( this.gameObject, "myobject");
 //Find an object of type GameObject with identifier "myobject" in the GameController registry
 GameObject go = GameController.Registry.Resolve<GameObject>("myobject");
 ```
+
+Note : The SceneManager also holds a registry for scene-specific object references. The SceneManager of the last scene that was loaded non-additive can be accessed via the ActiveSceneManager property of the GameController. To access the active scene's registry, use :
+
+```c#
+//Register a scene GameObject 
+GameController.ActiveSceneManager.SceneRegistry.Register<GameObject>( this.gameObject, "myobject");
+
+//Find an object of type GameObject with identifier "myobject" in the GameController registry
+GameObject go = GameController.ActiveSceneManager.SceneRegistry.Resolve<GameObject>("myobject");
+```
+
 
 #### Scene Transitions
 
