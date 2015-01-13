@@ -2,6 +2,9 @@
 {
     using UnityEngine;
     using System.Collections;
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
 
 
     /// <summary>
@@ -11,16 +14,10 @@
     public abstract class SceneManager : MonoBehaviour
     {
 
-        [SerializeField]
-        private string sceneName;//set in the inspector
-
         /// <summary>
         /// The name of the scene this SceneManager should manage
         /// </summary>
-        public string SceneName { 
-            get; 
-            protected set; 
-        }
+        public string SceneName;//set in the inspector
 
         /// <summary>
         /// A scene specific registry for objects that should not live outside of this scene. 
@@ -36,9 +33,7 @@
         protected virtual void Awake()
         {
             _registry = new GameRegistry();
-
             GameController.Instance.RegisterSceneManager( this );
-            SceneName = sceneName;
         }
 
         /// <summary>
@@ -77,5 +72,6 @@
         {
             GameController.Instance.UnregisterSceneManager( this );
         }
+
     }
 }
