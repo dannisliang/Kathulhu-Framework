@@ -104,7 +104,6 @@
                 //Add loading screen
                 if ( LoadingScreenPrefab != null )
                 {
-                    Debug.Log("Add loading screen");
                     GameObject loadingScreenInstance = Instantiate( LoadingScreenPrefab, Vector3.zero, Quaternion.identity ) as GameObject;
                     loadingScreen = loadingScreenInstance.GetComponent<LoadingScreen>();
                 }

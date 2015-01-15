@@ -28,8 +28,7 @@
         /// Registers a panel to the UIManager. Registered panels can be accessed via the static Panels property.
         /// </summary>
         public static void RegisterPanel( UIPanel panel )
-        {
-            Debug.Log("RegisterPanel->" + panel);
+        {            
             if ( !_panels.Contains( panel ) )
                 _panels.Add( panel );
         }
@@ -39,7 +38,6 @@
         /// </summary>
         public static void UnregisterPanel( UIPanel panel )
         {
-            Debug.Log( "UnregisterPanel->" + panel );
             _panels.Remove( panel );
         }
 
@@ -65,6 +63,30 @@
                 UnregisterPanel( panel );
         }
 
+        /// <summary>
+        /// Registers all panels found in the scene to this UIManager.
+        /// </summary>
+        public void ScanForPanels()
+        {
+            if ( !Application.isPlaying )      
+                _scenepanels.Clear();
+           
+            foreach ( Transform tr in UnityEngine.Object.FindObjectsOfType( typeof( Transform ) ) )
+            {
+                if ( tr.parent == null )
+                {
+                    UIPanel[] panels = tr.GetComponentsInChildren<UIPanel>( true );
+                    foreach ( var panel in panels )
+                    {
+                        if ( !Application.isPlaying )
+                            _scenepanels.Add( panel );
+                        else
+                            RegisterPanel( panel );
+                    }
+                }
+            }    
+
+        }
 
         //Class for holding a private list of Panels. Can be queried externally by exposing the IPanelIndexer
         private class PanelsIndexer : List<UIPanel>, IPanelIndexer
@@ -79,36 +101,6 @@
                 return this.ToList();
             }
         }
-
-        #region MENU ITEMS
-
-        //Add a menu item to find all UIPanel objects in the scene and add them to the UIManager scene panels list
-        [MenuItem( "KATHULHU/UI/Register all panels to UIManager" )]
-        public static void ScanSceneForPanels()
-        {
-            UIManager uiMgr = GameObject.FindObjectOfType<UIManager>();
-            if ( uiMgr == null )
-            {
-                Debug.LogWarning( "No UIManager found in scene, creating a UIManager" );
-                GameObject go = new GameObject( "UIManager" );
-                go.transform.position = Vector3.zero;
-                uiMgr = go.AddComponent<UIManager>();
-            }
-
-            uiMgr._scenepanels.Clear();
-
-            foreach ( Transform tr in UnityEngine.Object.FindObjectsOfType( typeof( Transform ) ) )
-            {
-                if ( tr.parent == null )
-                {
-                    UIPanel[] panels = tr.GetComponentsInChildren<UIPanel>( true );
-                    foreach ( var panel in panels)
-                        uiMgr._scenepanels.Add( panel );
-                }
-            }
-        }
-
-        #endregion MENU ITEMS
 
     }
 
