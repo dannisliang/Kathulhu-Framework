@@ -16,15 +16,15 @@
         private int _activeStateID;
         private int _activateParamID;
 
-        private Animator _animator;
+        private Animator _animator;               
 
         void Awake()
         {
             _activeStateID = Animator.StringToHash( STATE_ACTIVE );
             _activateParamID = Animator.StringToHash( PARAM_ACTIVATE );
-
+            
             _animator = GetComponent<Animator>();
-        }
+        }        
 
 
         /// <summary>
