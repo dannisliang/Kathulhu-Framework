@@ -3,64 +3,64 @@
     using UnityEngine;
     using UnityEditor;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using System;
 
     public class UIManager : MonoBehaviour
     {
-        private static UIManager Instance { get; set; }
-
-        //---------------------------------------
-        //STATIC MEMBERS
-        //---------------------------------------
+        #region STATIC MEMBERS
 
         /// <summary>
-        /// Static indexer to access a registered panel by it's name. Ex : UImanager.Panels["PanelName"] returns a panel named "PanelName" or null if the panel is not registered
+        /// Reference to the current UIManager. The current UIManager is the last UIManager that was instantiated.
         /// </summary>
-        public static IPanelIndexer Panels { 
-            get { return _panels; } 
+        public static UIManager Current { 
+            get; 
+            private set; 
         }
 
-        private static PanelsIndexer _panels = new PanelsIndexer();
+        #endregion
 
         /// <summary>
-        /// Registers a panel to the UIManager. Registered panels can be accessed via the static Panels property.
+        /// Indexer to access a registered panel by it's name. Ex : UImanager.Current.Panels["PanelName"] returns a panel named "PanelName" or null if the panel is not registered
         /// </summary>
-        public static void RegisterPanel( UIPanel panel )
-        {            
-            if ( !_panels.Contains( panel ) )
-                _panels.Add( panel );
-        }
-
-        /// <summary>
-        /// Removes a panel from the UImanager's list of panels
-        /// </summary>
-        public static void UnregisterPanel( UIPanel panel )
+        public IPanelIndexer Panels
         {
-            _panels.Remove( panel );
-        }
-
-        //---------------------------------------
-        //INSTANCE MEMBERS
-        //---------------------------------------
-
+            get { return _panels; }
+        }        
 
         [SerializeField]
         private List<UIPanel> _scenepanels = new List<UIPanel>();
 
-        void Awake()
+        private PanelsIndexer _panels = new PanelsIndexer();
+
+        protected virtual void Awake()
         {
-            Instance = this;
+            Current = this;
 
             foreach ( var panel in _scenepanels )
                 RegisterPanel( panel );
         }
 
-        void OnDestroy()
+        /// <summary>
+        /// Registers a panel to this UIManager. Registered panels can be accessed via the Panels property.
+        /// </summary>
+        public void RegisterPanel( UIPanel panel )
         {
-            foreach ( var panel in _scenepanels )
-                UnregisterPanel( panel );
+            if ( !_panels.Contains( panel ) )
+                _panels.Add( panel );
+        }
+
+        /// <summary>
+        /// Removes a panel from this UImanager's list of panels
+        /// </summary>
+        public void UnregisterPanel( UIPanel panel )
+        {
+            _panels.Remove( panel );
+        }
+
+        protected virtual void OnDestroy()
+        {
+            //
         }
 
         /// <summary>
