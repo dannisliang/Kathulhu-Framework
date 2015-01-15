@@ -104,6 +104,7 @@
                 //Add loading screen
                 if ( LoadingScreenPrefab != null )
                 {
+                    Debug.Log("Add loading screen");
                     GameObject loadingScreenInstance = Instantiate( LoadingScreenPrefab, Vector3.zero, Quaternion.identity ) as GameObject;
                     loadingScreen = loadingScreenInstance.GetComponent<LoadingScreen>();
                 }
@@ -126,10 +127,12 @@
                     Application.LoadLevelAdditive( transition.sceneName );
                 else
                     Application.LoadLevel( transition.sceneName );
+
+                yield return null;//necesary to make sure SceneManagers can register themselves to the GameController before we continue
             }
 
             //Setup the scene via the scene manager
-            SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName ); 
+            SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName );            
             if ( sceneManager != null )
             {
                 if ( !transition.additive )
