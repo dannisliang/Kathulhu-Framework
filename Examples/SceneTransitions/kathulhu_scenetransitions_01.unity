@@ -202,6 +202,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelToLoad: kathulhu_scenetransitions_02
+  additionalLevelsToLoad:
+  - kathulhu_scenetransitions_02_add
   additive: 0
 --- !u!4 &1979802625
 Transform:
