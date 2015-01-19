@@ -6,7 +6,7 @@ public class SceneTransitionExampleSceneManager : SceneManager {
 
     public override IEnumerator Load()
     {
-        LoadSceneProgressUpdateEvent evt = new LoadSceneProgressUpdateEvent();
+        LoadingProgressUpdateEvent evt = new LoadingProgressUpdateEvent();
 
         evt.progress = 0f;
         evt.message = "Initiating scene load.";

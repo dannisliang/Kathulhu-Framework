@@ -31,19 +31,40 @@
             get { return Instance == null ? null : Instance._activeSceneManager; }
         }
 
-        /// <summary>
+        /// <summary>       
         /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
         /// </summary>
         /// <param name="scene">The name of the scene to load</param>
+        /// <param name="additive">Whether we should load this scene additively</param>
         public static void LoadScene( string scene, bool additive = false )
+        {
+            LoadScene( scene, additive, null );
+        }
+
+        /// <summary>       
+        /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// </summary>
+        /// <param name="scene">The name of the scene to load</param>
+        /// <param name="additive">Whether we should load this scene additively</param>
+        /// <param name="additionalScenes">Additional scenes to load additively</param>
+        public static void LoadScene( string scene, bool additive, string[] additionalScenes )
         {
             if ( Instance == null )
                 return;
 
-            SceneTransitionSettings transition = new SceneTransitionSettings{
-                sceneName = scene,
+            List<string> scenes = new List<string>() { scene };
+            if ( additionalScenes != null && additionalScenes.Length > 0 )
+            {
+                foreach ( var item in additionalScenes )
+                    scenes.Add( item );
+            }            
+
+            SceneTransitionSettings transition = new SceneTransitionSettings
+            {
+                scenes = scenes,
                 additive = additive
             };
+
             Instance.StartCoroutine( Instance.Load( transition ) );
         }
 
@@ -59,22 +80,28 @@
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
 
-        private LoadSceneStartedEvent loadSceneEvent;
-        private LoadSceneProgressUpdateEvent loadSceneProgressUpdateEvent;
-        private LoadSceneCompletedEvent loadSceneCompletedEvent;
+        private SceneTransitionBeginEvent beginTransitionEvent;        
+        private SceneTransitionCompleteEvent completeTransitionEvent;
 
         void Awake()
         {
-            _sceneManagers = new List<SceneManager>();
+            if ( Instance != null )
+            {
+                Debug.LogError("Cannot instantiate two GameController components. This GameController will be destroyed.");
+                Destroy( this );
+            }
+            else
+            {
+                _sceneManagers = new List<SceneManager>();
 
-            loadSceneEvent = new LoadSceneStartedEvent();
-            loadSceneProgressUpdateEvent = new LoadSceneProgressUpdateEvent();
-            loadSceneCompletedEvent = new LoadSceneCompletedEvent();
+                beginTransitionEvent = new SceneTransitionBeginEvent();
+                completeTransitionEvent = new SceneTransitionCompleteEvent();
 
-            Instance = this;
+                Instance = this;
 
-            tag = "GameController";
-            DontDestroyOnLoad( gameObject );
+                tag = "GameController";
+                DontDestroyOnLoad( gameObject );
+            }
         }
 
         public void RegisterSceneManager(SceneManager sceneMgr)
@@ -90,13 +117,16 @@
         IEnumerator Load( SceneTransitionSettings transition )
         {
             //validate transition settings
-            if ( string.IsNullOrEmpty( transition.sceneName ) )
-                yield break;
+            if ( transition == null ) yield break;
+            if ( transition.scenes == null || transition.scenes.Count < 1 ) yield break;
+            if ( string.IsNullOrEmpty( transition.scenes[0] ) ) yield break;
+
+            //BEGIN THE TRANSITION
 
             //Raise "Load Scene" Event
-            loadSceneEvent.sceneName = transition.sceneName;
-            EventDispatcher.Event( loadSceneEvent );
-
+            beginTransitionEvent.sceneName = transition.scenes[0];
+            EventDispatcher.Event( beginTransitionEvent );
+            
             //Add loading screen and Unload current scenes if scene load is not additive
             LoadingScreen loadingScreen = null;
             if ( !transition.additive )
@@ -112,39 +142,53 @@
                     manager.UnloadScene();
             }
 
-            //Load the scene
-            if ( Application.HasProLicense() && transition.useAsync )
+            //LOAD ALL THE SCENES
+            string currentScene;
+            for ( int i = 0; i < transition.scenes.Count; i++ )
             {
-                AsyncOperation asyncLoading;
-                asyncLoading = transition.additive ? Application.LoadLevelAdditiveAsync(transition.sceneName) : Application.LoadLevelAsync( transition.sceneName );
-                while ( !asyncLoading.isDone )
-                    yield return null;
-            }
-            else
-            {
-                if (transition.additive)
-                    Application.LoadLevelAdditive( transition.sceneName );
+                currentScene = transition.scenes[i];                
+
+                //Load the scene
+                if ( Application.HasProLicense() && transition.useAsync )
+                {
+                    AsyncOperation asyncLoading;
+                    if ((i > 0) || transition.additive)
+                        asyncLoading = Application.LoadLevelAdditiveAsync( currentScene );
+                    else
+                        asyncLoading = Application.LoadLevelAsync( currentScene );
+
+                    while ( !asyncLoading.isDone )
+                        yield return null;
+                }
                 else
-                    Application.LoadLevel( transition.sceneName );
+                {
+                    if ( (i>0) || transition.additive )
+                        Application.LoadLevelAdditive( currentScene );
+                    else
+                        Application.LoadLevel( currentScene );
 
-                yield return null;//necesary to make sure SceneManagers can register themselves to the GameController before we continue
+                    yield return null;//necesary to make sure SceneManagers can register themselves to the GameController before we continue
+                }
+
+                //Setup the scene via the scene manager
+                SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == currentScene );
+                if ( sceneManager != null )
+                {
+                    if ( i == 0 && !transition.additive )
+                        _activeSceneManager = sceneManager;
+
+                    sceneManager.OnLoadSceneStart();
+
+                    Coroutine sceneLoadCoroutine = sceneManager.StartCoroutine( sceneManager.Load() );
+                    yield return sceneLoadCoroutine;
+
+                    sceneManager.OnLoadSceneCompleted();
+                }
+                else if ( i == 0 && !transition.additive ) _activeSceneManager = null;
             }
 
-            //Setup the scene via the scene manager
-            SceneManager sceneManager = _sceneManagers.FirstOrDefault( x => x.SceneName == transition.sceneName );            
-            if ( sceneManager != null )
-            {
-                if ( !transition.additive )
-                    _activeSceneManager = sceneManager;
 
-                sceneManager.OnLoadSceneStart();
-
-                Coroutine sceneLoadCoroutine = sceneManager.StartCoroutine( sceneManager.Load() );
-                yield return sceneLoadCoroutine;
-
-                sceneManager.OnLoadSceneCompleted();
-            }
-            else if (!transition.additive) _activeSceneManager = null;
+            //END THE TRANSITION
 
             //Remove loading screen
             if ( loadingScreen != null ) {
@@ -152,19 +196,18 @@
             }
 
             //Raise "Scene Loaded" Event
-            loadSceneCompletedEvent.sceneName = transition.sceneName;
-            EventDispatcher.Event( loadSceneCompletedEvent );
+            completeTransitionEvent.sceneName = transition.scenes[0];
+            EventDispatcher.Event( completeTransitionEvent );
 
         }
+        
 
         private class SceneTransitionSettings
         {
-
-            public string sceneName;
+            public List<string> scenes;
 
             public bool useAsync = true;
             public bool additive;
-
         }
 
 
@@ -173,7 +216,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene loading will occur
     /// </summary>
-    public class LoadSceneStartedEvent : Event
+    public class SceneTransitionBeginEvent : Event
     {
         public string sceneName;
         public bool additive;
@@ -182,7 +225,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load has progressed
     /// </summary>
-    public class LoadSceneProgressUpdateEvent : Event
+    public class LoadingProgressUpdateEvent : Event
     {
         public float progress;
         public string message;
@@ -191,7 +234,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load was completed
     /// </summary>
-    public class LoadSceneCompletedEvent : Event
+    public class SceneTransitionCompleteEvent : Event
     {
         public string sceneName;
     }
