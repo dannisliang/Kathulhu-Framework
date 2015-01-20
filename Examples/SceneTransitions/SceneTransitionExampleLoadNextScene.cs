@@ -5,6 +5,8 @@ using Kathulhu;
 public class SceneTransitionExampleLoadNextScene : MonoBehaviour {
 
     public string levelToLoad = "kathulhu_scenetransitions_02";
+
+    public string[] additionalLevelsToLoad = new string[] { "kathulhu_scenetransitions_02_add" };
     public bool additive = false;
 
 
@@ -12,10 +14,7 @@ public class SceneTransitionExampleLoadNextScene : MonoBehaviour {
     {
         yield return new WaitForSeconds( 0.5f );
 
-        if ( additive )
-            GameController.LoadScene( levelToLoad, true );
-        else
-            GameController.LoadScene( levelToLoad );
+        GameController.LoadScene( levelToLoad, additive, additionalLevelsToLoad );
     }
 
 }
