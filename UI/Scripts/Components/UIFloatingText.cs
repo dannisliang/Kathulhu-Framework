@@ -80,14 +80,14 @@
         {
             get { return _list.Count; }
         }
-
-        private RectTransform _rect;
+        
         private List<Entry> _list = new List<Entry>();
         private Queue<Entry> _entrypool = new Queue<Entry>();
 
-        void Awake()
+        protected override void Awake()
         {
-            _rect = GetComponent<RectTransform>();
+ 	        base.Awake();
+           
         }
 
         /// <summary>

@@ -12,15 +12,15 @@
         const string STATE_ACTIVE = "ACTIVE";
         const string STATE_INACTIVE = "INACTIVE";
         const string PARAM_ACTIVATE = "Activate";
-
-        private int _activeStateID;
+        
         private int _activateParamID;
 
         private Animator _animator;               
 
-        void Awake()
+        protected override void Awake()
         {
-            _activeStateID = Animator.StringToHash( STATE_ACTIVE );
+ 	         base.Awake();
+
             _activateParamID = Animator.StringToHash( PARAM_ACTIVATE );
             
             _animator = GetComponent<Animator>();
