@@ -29,7 +29,7 @@
         public static SceneManager ActiveSceneManager
         {
             get { return Instance == null ? null : Instance._activeSceneManager; }
-        }
+        }        
 
         /// <summary>       
         /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
@@ -68,6 +68,30 @@
             Instance.StartCoroutine( Instance.Load( transition ) );
         }
 
+        /// <summary>
+        /// Executes a GameCommand via the GameController instance's CommandScheduler
+        /// </summary>
+        /// <param name="cmd">A GameCommand to execute</param>
+        public static void Execute( GameCommand cmd )
+        {
+            if ( Instance == null )
+                return;
+
+            Instance.ExecuteCommand( cmd );
+        }
+
+        /// <summary>
+        /// Enqueue a GameCommand in the GameController instance's CommandScheduler
+        /// </summary>
+        /// <param name="cmd">A GameCommand to add to the execution queue</param>
+        public static void Enqeue( GameCommand cmd )
+        {
+            if ( Instance == null )
+                return;
+
+            Instance.EnqueueCommand( cmd );
+        }
+
 
         private static GameRegistry _registry;
 
@@ -76,6 +100,8 @@
         //---------------------------------------
 
         public GameObject LoadingScreenPrefab;//set in the inspector
+
+        private CommandScheduler _scheduler;
 
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
@@ -101,6 +127,8 @@
 
                 tag = "GameController";
                 DontDestroyOnLoad( gameObject );
+
+                _scheduler = GetComponent<CommandScheduler>();             
             }
         }
 
@@ -187,7 +215,6 @@
                 else if ( i == 0 && !transition.additive ) _activeSceneManager = null;
             }
 
-
             //END THE TRANSITION
 
             //Remove loading screen
@@ -201,6 +228,21 @@
 
         }
         
+        public void ExecuteCommand( GameCommand cmd )
+        {
+            if ( _scheduler == null )
+                _scheduler = gameObject.AddComponent<CommandScheduler>();
+
+            _scheduler.ExecuteCommand( cmd );
+        }
+
+        public void EnqueueCommand( GameCommand cmd )
+        {
+            if ( _scheduler == null )
+                _scheduler = gameObject.AddComponent<CommandScheduler>();
+
+            _scheduler.EnqueueCommand( cmd );
+        }
 
         private class SceneTransitionSettings
         {
