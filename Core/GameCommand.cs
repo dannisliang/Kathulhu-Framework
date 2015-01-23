@@ -9,16 +9,26 @@
     {
         /// <summary>
         /// Whether we should use the command's priority to validate execution. If true, the command should only be executed if no other command 
-        /// with UsePriority is running or if this command's priority is greater than the runnning command's priority
+        /// with UsePriority is running or if this command's priority is greater than the runnning command's priority. UsePriority can also be used
+        /// by the command queue to sort game commands by priority
         /// </summary>
-        public virtual bool UsePriority
+        public bool UsePriority
         {
-            get;
-            protected set;
+            get { return _usePriority; }
+            set
+            {
+                if ( State == CommandState.Running )
+                {
+                    Debug.LogWarning( "Cannot change 'UsePriority' value while command is running" );
+                    return;
+                }
+
+                _usePriority = value;
+            }
         }
 
         /// <summary>
-        /// The priority of this command. Used to evaluate if this command's execution can override the current running command.
+        /// The priority of this command. Used to evaluate if this command's execution can override the current running command or the order of execution in a queue
         /// </summary>
         public int Priority
         {
@@ -40,7 +50,7 @@
         /// </summary>
         public CommandState State { get; private set; }
 
-
+        private bool _usePriority = false;
         private int _priority = 0;
 
         /// <summary>
@@ -110,9 +120,9 @@
 
     public enum CommandState
     {
-        None,
-        Running,
-        Aborted,
-        Completed,
+        None,//This is a new command, it has never ben executed yet
+        Running,//The command is currently running
+        Aborted,//The command's execution has been aborted
+        Completed,//The command has completed normally
     }
 }

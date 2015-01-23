@@ -48,7 +48,8 @@
 	    }
 
         /// <summary>
-        /// Executes the GameCommand and adds it to the list of commands to update
+        /// Executes the GameCommand and adds it to the list of commands to update. If the GameCommand has UsePriority set to true, it will only be executed if the current priority command is null
+        /// or has a lower priority.
         /// </summary>
         public void ExecuteCommand( GameCommand cmd )
         {
@@ -86,7 +87,8 @@
         }
 
         /// <summary>
-        /// Adds the GameCommand to a queue. The command will be executed and receive Update when appropriate
+        /// Adds the GameCommand to a queue. The command will be executed and receive Update when appropriate. If the GameCommand has UsePriority set to true, it's priority will be used to 
+        /// insert the command at the correct index in the queue.
         /// </summary>
         public void EnqueueCommand( GameCommand cmd )
         {

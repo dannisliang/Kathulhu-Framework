@@ -81,7 +81,7 @@
         }
 
         /// <summary>
-        /// Enqueue a GameCommand in the GameController instance's CommandScheduler
+        /// Enqueue a GameCommand in the GameController instance's CommandScheduler.
         /// </summary>
         /// <param name="cmd">A GameCommand to add to the execution queue</param>
         public static void Enqeue( GameCommand cmd )
