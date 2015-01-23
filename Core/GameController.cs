@@ -151,6 +151,9 @@
 
             //BEGIN THE TRANSITION
 
+            if ( !transition.additive && _scheduler != null )
+                _scheduler.Clear();
+
             //Raise "Load Scene" Event
             beginTransitionEvent.sceneName = transition.scenes[0];
             EventDispatcher.Event( beginTransitionEvent );

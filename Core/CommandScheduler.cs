@@ -47,6 +47,11 @@
             
 	    }
 
+        void OnDisable()
+        {
+            Clear();
+        }
+
         /// <summary>
         /// Executes the GameCommand and adds it to the list of commands to update. If the GameCommand has UsePriority set to true, it will only be executed if the current priority command is null
         /// or has a lower priority.
@@ -116,6 +121,30 @@
             }
             else//Append to queue
                 _queue.Add( cmd );                
+        }
+
+        /// <summary>
+        /// Abort all running game commands and clear the queue and the concurrent commands list
+        /// </summary>
+        public void Clear()
+        {
+            if ( _current != null && _current.State == CommandState.Running )
+                _current.Abort();
+
+            if ( _queue.Count > 0 )
+            {
+                if ( _queue[0].State == CommandState.Running )
+                    _queue[0].Abort();
+
+                _queue.Clear();
+            }
+
+            foreach ( var cmd in _concurrentCommands )
+            {
+                if ( cmd.State == CommandState.Running )
+                    cmd.Abort();
+            }
+            _concurrentCommands.Clear();
         }
     }
 }
