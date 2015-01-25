@@ -49,17 +49,17 @@
         /// <summary>
         /// Deactivates a gameObject and returns it to it's pool. If no pool is found for this gameObject, it is destroyed.
         /// </summary>
-        public void Deactivate( GameObject gameObject )
+        public void Deactivate( GameObject go )
         {
-            ObjectPool pool = GetObjectPool( gameObject.name );
+            ObjectPool pool = GetObjectPool( go.name );
             if ( pool != null )
             {
-                pool.Deactivate( gameObject );
+                pool.Deactivate( go );
             }
             else
             {
                 gameObject.SetActive(false);
-                Destroy(gameObject);
+                Destroy(go);
             }
         }
 
@@ -77,7 +77,7 @@
         /// </summary>
         public GameObject Spawn( string prefabName, Vector3 pos, Quaternion rot )
         {
-            ObjectPool pool = GetObjectPool( gameObject.name );
+            ObjectPool pool = GetObjectPool( prefabName );
             if ( pool != null )
                 return pool.Spawn( Vector3.zero, Quaternion.identity );
 
