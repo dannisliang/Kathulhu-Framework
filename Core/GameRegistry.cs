@@ -14,14 +14,37 @@
 
         private List<GameRegistryElement> _registry = new List<GameRegistryElement>();
 
+        public void Register( object obj, string identifier )
+        {
+            Type t = obj.GetType();
+            Register( t, obj, identifier );
+        }
+
         public void Register<T>( T obj, string identifier )
         {
             Type t = typeof( T );
+            Register( t, obj, identifier );
+        }
+
+        private void Register( Type t, object obj, string identifier )
+        {
+            if ( obj == null )
+                return;
+
             GameRegistryElement element = _registry.FirstOrDefault( x => x.Type == t && x.Identifier == identifier );
             if ( element == null )
                 _registry.Add( new GameRegistryElement() { Identifier = identifier, Type = t, Instance = obj } );
             else
                 element.Instance = obj;
+        }
+
+        public object Resolve( string identifier )
+        {
+            GameRegistryElement element = _registry.FirstOrDefault( x => x.Identifier == identifier );
+            if ( element != null )
+                return element.Instance;
+
+            return null;
         }
 
         public T Resolve<T>( string identifier )
@@ -51,10 +74,25 @@
                 yield return ( T ) element.Instance;
         }
 
+        public bool Remove<T>( T obj )
+        {
+            return Remove( obj );
+        }
+
+        public bool Remove( object obj )
+        {
+            GameRegistryElement element = _registry.FirstOrDefault( x => x.Instance == obj );
+            if ( element != null )
+                return _registry.Remove( element );
+
+            return false;
+        }
+
         public void Clear()
         {
             _registry.Clear();
         }
+
     }
 
     public class GameRegistryElement
