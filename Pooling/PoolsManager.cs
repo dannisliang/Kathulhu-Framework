@@ -6,7 +6,7 @@
     using System.Linq;
 
     /// <summary>
-    /// Global pooling manager. Holds, initializes and manages multiple object pools.
+    /// Global pooling manager. Holds, initializes and manages multiple GameObject pools.
     /// </summary>
     public class PoolsManager : MonoBehaviour
     {
@@ -32,7 +32,7 @@
         /// Adds an object pool for the specified prefab if it doesn't exist already
         /// </summary>
         /// <param name="prefab">The prefab we want to pool</param>
-        public void Add( GameObject prefab )
+        public void AddPrefab( GameObject prefab )
         {
             if ( prefab == null )
                 throw new MissingReferenceException( "Cannot create an object pool from a null reference." );
