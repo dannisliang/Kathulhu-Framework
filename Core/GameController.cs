@@ -29,16 +29,37 @@
         public static SceneManager ActiveSceneManager
         {
             get { return Instance == null ? null : Instance._activeSceneManager; }
-        }        
+        }
 
         /// <summary>       
-        /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// </summary>
+        /// <param name="scene">The name of the scene to load</param>        
+        public static void LoadScene( string scene )
+        {
+            LoadScene( scene, false );
+        }
+
+        /// <summary>       
+        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
         /// </summary>
         /// <param name="scene">The name of the scene to load</param>
         /// <param name="additive">Whether we should load this scene additively</param>
-        public static void LoadScene( string scene, bool additive = false )
+        public static void LoadScene( string scene, bool additive )
         {
-            LoadScene( scene, additive, null );
+            LoadScene( scene, additive, !additive );
+        }
+
+
+        /// <summary>       
+        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// </summary>
+        /// <param name="scene">The name of the scene to load</param>
+        /// <param name="additive">Whether we should load this scene additively</param>
+        /// <param name="useLoadingScreen">Whether the loading screen should be displayed or not</param>
+        public static void LoadScene( string scene, bool additive, bool useLoadingScreen)
+        {
+            LoadScene( scene, additive, null, useLoadingScreen );
         }
 
         /// <summary>       
@@ -47,7 +68,8 @@
         /// <param name="scene">The name of the scene to load</param>
         /// <param name="additive">Whether we should load this scene additively</param>
         /// <param name="additionalScenes">Additional scenes to load additively</param>
-        public static void LoadScene( string scene, bool additive, string[] additionalScenes )
+        /// /// <param name="useLoadingScreen">Whether the loading screen should be displayed or not</param>
+        public static void LoadScene( string scene, bool additive, string[] additionalScenes, bool useLoadingScreen = true )
         {
             if ( Instance == null )
                 return;
@@ -62,7 +84,8 @@
             SceneTransitionSettings transition = new SceneTransitionSettings
             {
                 scenes = scenes,
-                additive = additive
+                additive = additive,
+                useLoadingScreen = useLoadingScreen,
             };
 
             Instance.StartCoroutine( Instance.Load( transition ) );
@@ -158,9 +181,9 @@
             beginTransitionEvent.sceneName = transition.scenes[0];
             EventDispatcher.Event( beginTransitionEvent );
             
-            //Add loading screen and Unload current scenes if scene load is not additive
+            //Add loading screen                        
             LoadingScreen loadingScreen = null;
-            if ( !transition.additive )
+            if ( transition.useLoadingScreen )
             {
                 //Add loading screen
                 if ( LoadingScreenPrefab != null )
@@ -168,7 +191,11 @@
                     GameObject loadingScreenInstance = Instantiate( LoadingScreenPrefab, Vector3.zero, Quaternion.identity ) as GameObject;
                     loadingScreen = loadingScreenInstance.GetComponent<LoadingScreen>();
                 }
+            }
 
+            //Unload current scenes if scene load is not additive
+            if ( !transition.additive )
+            {
                 foreach ( SceneManager manager in _sceneManagers )
                     manager.UnloadScene();
             }
@@ -251,8 +278,11 @@
         {
             public List<string> scenes;
 
-            public bool useAsync = true;
             public bool additive;
+
+            public bool useAsync = true;
+            public bool useLoadingScreen = true;            
+            
         }
 
 
