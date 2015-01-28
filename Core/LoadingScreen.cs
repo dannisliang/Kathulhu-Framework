@@ -17,7 +17,7 @@
             EventDispatcher.Subscribe<LoadingProgressUpdateEvent>( OnProgressChanged );
         }
 
-        private void OnProgressChanged( Event e )
+        private void OnProgressChanged( BaseEvent e )
         {
             LoadingProgressUpdateEvent evt = e as LoadingProgressUpdateEvent;
             OnProgressChange( evt );

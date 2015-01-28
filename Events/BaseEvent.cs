@@ -4,7 +4,7 @@
     /// <summary>
     /// Base class for all events.
     /// </summary>
-    public abstract class Event
+    public abstract class BaseEvent
     {
     }
 

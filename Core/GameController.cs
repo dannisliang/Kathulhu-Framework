@@ -291,7 +291,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene loading will occur
     /// </summary>
-    public class SceneTransitionBeginEvent : Event
+    public class SceneTransitionBeginEvent : BaseEvent
     {
         public string sceneName;
         public bool additive;
@@ -300,7 +300,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load has progressed
     /// </summary>
-    public class LoadingProgressUpdateEvent : Event
+    public class LoadingProgressUpdateEvent : BaseEvent
     {
         public float progress;
         public string message;
@@ -309,7 +309,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load was completed
     /// </summary>
-    public class SceneTransitionCompleteEvent : Event
+    public class SceneTransitionCompleteEvent : BaseEvent
     {
         public string sceneName;
     }

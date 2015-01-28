@@ -9,8 +9,8 @@
     public class EventDispatcher
     {
 
-        private delegate void EventDelegate( Event e );
-        public delegate void GenericEventDelegate<T>( T e ) where T : Event;
+        private delegate void EventDelegate( BaseEvent e );
+        public delegate void GenericEventDelegate<T>( T e ) where T : BaseEvent;
 
         private static Dictionary<System.Type, EventDelegate> dispatchDelegates = new Dictionary<System.Type, EventDelegate>();
         private static Dictionary<System.Delegate, EventDelegate> subscriberDelegates = new Dictionary<System.Delegate, EventDelegate>();        
@@ -21,7 +21,7 @@
         /// </summary>
         /// <typeparam name="T">The event type to subscribe to</typeparam>
         /// <param name="del">The delegate to add to the event's callbacks</param>
-        public static void Subscribe<T>( GenericEventDelegate<T> del ) where T : Event
+        public static void Subscribe<T>( GenericEventDelegate<T> del ) where T : BaseEvent
         {
             if ( del == null ) return;
             if ( subscriberDelegates.ContainsKey( del ) ) return;
@@ -44,7 +44,7 @@
         /// </summary>
         /// <typeparam name="T">The event type to unsubscribe from</typeparam>
         /// <param name="del">The delegate to remove</param>
-        public static void Unsubscribe<T>( GenericEventDelegate<T> del ) where T : Event
+        public static void Unsubscribe<T>( GenericEventDelegate<T> del ) where T : BaseEvent
         {
             if ( del == null ) return;
 
@@ -71,7 +71,7 @@
         /// Raises an event and notifies all subscribers.
         /// </summary>
         /// <param name="evt">The event parameter</param>
-        public static void Event( Event evt )
+        public static void Event( BaseEvent evt )
         {
             EventDelegate del;
             if ( dispatchDelegates.TryGetValue( evt.GetType(), out del ) )

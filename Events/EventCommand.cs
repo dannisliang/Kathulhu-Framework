@@ -11,7 +11,7 @@
     /// cmd.Execute();
     /// 
     /// </summary>
-    public abstract class EventCommand : Event, ICommand {
+    public abstract class EventCommand : BaseEvent, ICommand {
 
         public virtual void Execute()
         {
