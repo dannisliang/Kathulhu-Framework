@@ -1,47 +1,50 @@
-﻿using UnityEngine;
-using System.Collections;
-using Kathulhu;
-
-/// <summary>
-/// Base class to initialize a scene with custom logic and automatically load a scene after initialization
-/// </summary>
-public class ApplicationInitializer : MonoBehaviour {
-
-    [SerializeField]
-    private string _nextScene;
-
-    [SerializeField]
-    private string[] _additionalScenesToLoad;
-
-    [SerializeField]
-    private bool _additive = false;
-
-    [SerializeField]
-    private bool _useLoadingScreen = true;
-
-    void Start()
-    {
-        Initialize();
-        LoadNextScene();
-    }
+﻿namespace Kathulhu
+{
+    using UnityEngine;
+    using System.Collections;
 
     /// <summary>
-    /// Override to Initialize the application with custom logic
+    /// Base class to initialize a scene with custom logic and automatically load a scene after initialization
     /// </summary>
-    protected virtual void Initialize()
+    public class ApplicationInitializer : MonoBehaviour
     {
-        //
-    }
 
-    /// <summary>
-    /// Loads the next scene automatically
-    /// </summary>
-    void LoadNextScene()
-    {
-        if ( string.IsNullOrEmpty( _nextScene ) )
-            return;
+        [SerializeField]
+        private string _nextScene;
 
-        GameController.LoadScene( _nextScene, _additive, _additionalScenesToLoad, _useLoadingScreen );
+        [SerializeField]
+        private string[] _additionalScenesToLoad;
+
+        [SerializeField]
+        private bool _additive = false;
+
+        [SerializeField]
+        private bool _useLoadingScreen = true;
+
+        void Start()
+        {
+            Initialize();
+            LoadNextScene();
+        }
+
+        /// <summary>
+        /// Override to Initialize the application with custom logic
+        /// </summary>
+        protected virtual void Initialize()
+        {
+            //
+        }
+
+        /// <summary>
+        /// Loads the next scene automatically
+        /// </summary>
+        void LoadNextScene()
+        {
+            if ( string.IsNullOrEmpty( _nextScene ) )
+                return;
+
+            GameController.LoadScene( _nextScene, _additive, _additionalScenesToLoad, _useLoadingScreen );
+        }
     }
 }
 
