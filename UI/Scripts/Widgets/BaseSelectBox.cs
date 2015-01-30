@@ -22,11 +22,18 @@
         [SerializeField]
         private RectTransform _selectedElementRect;//set in the inspector
 
+
         private BaseListElement<T> _selectedElement;
+        //cached components
+        private RectTransform _rectTransform;
+        private Canvas _parentCanvas;        
 
         protected override void Awake()
         {
             base.Awake();
+
+            _rectTransform = transform as RectTransform;
+            _parentCanvas = GetComponentInParent<Canvas>();
 
             if ( _listComponent != null )
                 _listComponent.OnElementClicked += SelectElement;
@@ -50,6 +57,22 @@
               
                 //TODO -
                 //constrain seleted element widget in rect bounds ?
+            }
+        }
+
+        void LateUpdate()
+        {
+            //Hide list if user clicked outside of the selectbox
+            if ( Input.GetMouseButtonDown( 0 ) )
+            {                               
+                Vector2 pos = new Vector2( Input.mousePosition.x, Input.mousePosition.y );
+
+                Camera camera = _parentCanvas == null ? null : _parentCanvas.worldCamera;
+                bool clickedOnSelectBox = RectTransformUtility.RectangleContainsScreenPoint( _rectTransform, pos, camera );
+                bool clickedOnList = RectTransformUtility.RectangleContainsScreenPoint( _listComponent.transform as RectTransform, pos, camera );
+
+                if ( !clickedOnSelectBox && !clickedOnList )
+                    HideList();
             }
         }
 
@@ -82,7 +105,20 @@
         /// </summary>
         public void ToggleList()
         {
-            _listComponent.gameObject.SetActive( !_listComponent.gameObject.activeInHierarchy );
+            if ( _listComponent.gameObject.activeInHierarchy )
+                HideList();
+            else
+                ShowList();
+        }
+
+        public void HideList()
+        {
+            _listComponent.gameObject.SetActive( false );
+        }
+
+        public void ShowList()
+        {
+            _listComponent.gameObject.SetActive( true );
         }
 
         protected override void OnDestroy()
