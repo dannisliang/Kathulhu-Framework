@@ -35,9 +35,9 @@
             get { return _priority; }
             set
             {
-                if (State == CommandState.Running)
+                if ( State == CommandState.Running )
                 {
-                    Debug.LogWarning("Cannot change priority while command is running");
+                    Debug.LogWarning( "Cannot change priority while command is running" );
                     return;
                 }
 
@@ -60,7 +60,7 @@
         {
             if ( State == CommandState.Running )
             {
-                Debug.LogWarning("Command is already running.");
+                Debug.LogWarning( "Command is already running." );
                 return;
             }
 
@@ -69,8 +69,19 @@
             OnExecute();
         }
 
+        /// <summary>
+        /// Override to setup the GameCommand with the given parameters. Default implementation ignrores the parameters array.
+        /// </summary>
+        public virtual void Execute( params object[] args )
+        {
+            Execute();            
+        }
+
+        /// <summary>
+        /// Override to add behaviour to this command when it is executed and it's state is set to running.
+        /// </summary>
         protected virtual void OnExecute() { }
-        
+
         /// <summary>
         /// Aborts the command. Cannot abort if not in Running state.
         /// </summary>
@@ -116,6 +127,7 @@
         }
 
         public virtual void OnUpdate() { }
+
     }
 
     public enum CommandState

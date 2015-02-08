@@ -1,4 +1,5 @@
-﻿namespace Kathulhu {
+﻿namespace Kathulhu
+{
 
     using UnityEngine;
     using System.Collections;
@@ -11,12 +12,17 @@
     /// cmd.Execute();
     /// 
     /// </summary>
-    public abstract class EventCommand : BaseEvent, ICommand {
+    public abstract class EventCommand : BaseEvent, ICommand
+    {
 
         public virtual void Execute()
         {
             EventDispatcher.Event( this );
         }
 
+        public virtual void Execute( params object[] args )
+        {
+            EventDispatcher.Event( this );
+        }
     }
 }
