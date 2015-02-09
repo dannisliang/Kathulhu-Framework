@@ -56,10 +56,10 @@
 
             if ( GetComponentInChildren<ScrollRect>().content.sizeDelta.y < GetComponent<RectTransform>().sizeDelta.y )
             {
-                GetComponentInChildren<ScrollRect>().content.sizeDelta = new Vector2(GetComponentInChildren<ScrollRect>().content.sizeDelta.x, GetComponent<RectTransform>().sizeDelta.y);
+                GetComponentInChildren<ScrollRect>().content.sizeDelta = new Vector2( GetComponentInChildren<ScrollRect>().content.sizeDelta.x, GetComponent<RectTransform>().sizeDelta.y );
                 GetComponentInChildren<ScrollRect>().verticalScrollbar.value = 0;
             }
-                
+
 
             return component;
         }
@@ -68,16 +68,18 @@
         /// Destroys a list element's widget at the given index.
         /// </summary>        
         void RemoveElement( int index )
-        {            
+        {
             BaseListElement<T> widget = _widgetsList[index];
             if ( widget != null )
             {
                 Button button = widget.GetComponent<Button>();
                 if ( button != null )
                     button.onClick.RemoveAllListeners();
-                
+
+                widget.transform.SetParent( null );
                 Destroy( widget.gameObject );
-                _widgetsList[index] = null;
+
+                _widgetsList.RemoveAt( index );
             }
         }
 
@@ -91,7 +93,7 @@
             elementTransform.SetSiblingIndex( index );
         }
 
-        void ElementClickedHandler( BaseListElement<T> element)
+        void ElementClickedHandler( BaseListElement<T> element )
         {
             if ( OnElementClicked != null )
                 OnElementClicked( element );
@@ -114,7 +116,7 @@
         }
 
         public void RemoveAt( int index )
-        {            
+        {
             RemoveElement( index );
 
             _dataList.RemoveAt( index );
