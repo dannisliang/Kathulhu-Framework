@@ -12,19 +12,19 @@
         const string STATE_ACTIVE = "ACTIVE";
         const string STATE_INACTIVE = "INACTIVE";
         const string PARAM_ACTIVATE = "Activate";
-        
+
         private int _activateParamID;
 
-        private Animator _animator;               
+        private Animator _animator;
 
         protected override void Awake()
         {
- 	         base.Awake();
+            base.Awake();
 
             _activateParamID = Animator.StringToHash( PARAM_ACTIVATE );
-            
+
             _animator = GetComponent<Animator>();
-        }        
+        }
 
 
         /// <summary>
@@ -56,14 +56,17 @@
         /// </summary>
         public void Deactivate()
         {
-            if ( _animator != null )
+            if ( gameObject.activeInHierarchy )
             {
-                _animator.SetBool( _activateParamID, false );
+                if ( _animator != null )
+                {
+                    _animator.SetBool( _activateParamID, false );
+                }
+
+                StartCoroutine( Deactivation() );
+
+                OnDeactivate();
             }
-
-            StartCoroutine( Deactivation() );
-
-            OnDeactivate();
         }
 
         /// <summary>
