@@ -1,11 +1,12 @@
-﻿namespace Kathulhu {
+﻿namespace Kathulhu
+{
 
     using UnityEngine;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
 
-    public class GameController : MonoBehaviour 
+    public class GameController : MonoBehaviour
     {
 
         public static GameController Instance { get; private set; }
@@ -57,7 +58,7 @@
         /// <param name="scene">The name of the scene to load</param>
         /// <param name="additive">Whether we should load this scene additively</param>
         /// <param name="useLoadingScreen">Whether the loading screen should be displayed or not</param>
-        public static void LoadScene( string scene, bool additive, bool useLoadingScreen)
+        public static void LoadScene( string scene, bool additive, bool useLoadingScreen )
         {
             LoadScene( scene, additive, null, useLoadingScreen );
         }
@@ -79,7 +80,7 @@
             {
                 foreach ( var item in additionalScenes )
                     scenes.Add( item );
-            }            
+            }
 
             SceneTransitionSettings transition = new SceneTransitionSettings
             {
@@ -100,7 +101,7 @@
             if ( Instance == null )
                 return;
 
-            Instance.ExecuteCommand( cmd );
+            Instance.ExecuteGameCommand( cmd );
         }
 
         /// <summary>
@@ -112,7 +113,7 @@
             if ( Instance == null )
                 return;
 
-            Instance.EnqueueCommand( cmd );
+            Instance.EnqueueGameCommand( cmd );
         }
 
 
@@ -129,14 +130,14 @@
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
 
-        private SceneTransitionBeginEvent beginTransitionEvent;        
+        private SceneTransitionBeginEvent beginTransitionEvent;
         private SceneTransitionCompleteEvent completeTransitionEvent;
 
         void Awake()
         {
             if ( Instance != null )
             {
-                Debug.LogError("Cannot instantiate two GameController components. This GameController will be destroyed.");
+                Debug.LogError( "Cannot instantiate two GameController components. This GameController will be destroyed." );
                 Destroy( this );
             }
             else
@@ -151,11 +152,11 @@
                 tag = "GameController";
                 DontDestroyOnLoad( gameObject );
 
-                _scheduler = GetComponent<CommandScheduler>();             
+                _scheduler = GetComponent<CommandScheduler>();
             }
         }
 
-        public void RegisterSceneManager(SceneManager sceneMgr)
+        public void RegisterSceneManager( SceneManager sceneMgr )
         {
             _sceneManagers.Add( sceneMgr );
         }
@@ -180,7 +181,7 @@
             //Raise "Load Scene" Event
             beginTransitionEvent.sceneName = transition.scenes[0];
             EventDispatcher.Event( beginTransitionEvent );
-            
+
             //Add loading screen                        
             LoadingScreen loadingScreen = null;
             if ( transition.useLoadingScreen )
@@ -196,6 +197,9 @@
             //Unload current scenes if scene load is not additive
             if ( !transition.additive )
             {
+                //Wait one frame to make sure any current transition has time to 'yield break' before we unload it
+                yield return null;
+
                 foreach ( SceneManager manager in _sceneManagers )
                     manager.UnloadScene();
             }
@@ -204,13 +208,13 @@
             string currentScene;
             for ( int i = 0; i < transition.scenes.Count; i++ )
             {
-                currentScene = transition.scenes[i];                
+                currentScene = transition.scenes[i];
 
                 //Load the scene
                 if ( Application.HasProLicense() && transition.useAsync )
                 {
                     AsyncOperation asyncLoading;
-                    if ((i > 0) || transition.additive)
+                    if ( ( i > 0 ) || transition.additive )
                         asyncLoading = Application.LoadLevelAdditiveAsync( currentScene );
                     else
                         asyncLoading = Application.LoadLevelAsync( currentScene );
@@ -220,7 +224,7 @@
                 }
                 else
                 {
-                    if ( (i>0) || transition.additive )
+                    if ( ( i > 0 ) || transition.additive )
                         Application.LoadLevelAdditive( currentScene );
                     else
                         Application.LoadLevel( currentScene );
@@ -248,7 +252,8 @@
             //END THE TRANSITION
 
             //Remove loading screen
-            if ( loadingScreen != null ) {
+            if ( loadingScreen != null )
+            {
                 Destroy( loadingScreen.gameObject );
             }
 
@@ -257,8 +262,8 @@
             EventDispatcher.Event( completeTransitionEvent );
 
         }
-        
-        public void ExecuteCommand( GameCommand cmd )
+
+        public void ExecuteGameCommand( GameCommand cmd )
         {
             if ( _scheduler == null )
                 _scheduler = gameObject.AddComponent<CommandScheduler>();
@@ -266,7 +271,7 @@
             _scheduler.ExecuteCommand( cmd );
         }
 
-        public void EnqueueCommand( GameCommand cmd )
+        public void EnqueueGameCommand( GameCommand cmd )
         {
             if ( _scheduler == null )
                 _scheduler = gameObject.AddComponent<CommandScheduler>();
@@ -281,8 +286,8 @@
             public bool additive;
 
             public bool useAsync = true;
-            public bool useLoadingScreen = true;            
-            
+            public bool useLoadingScreen = true;
+
         }
 
 
