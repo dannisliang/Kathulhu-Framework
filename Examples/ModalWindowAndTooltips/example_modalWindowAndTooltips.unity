@@ -170,6 +170,7 @@ MonoBehaviour:
   _scenepanels: []
   _modalWindowPrefabs:
   - {fileID: 180942, guid: df3b74c44056ea74fa9224369a594f55, type: 2}
+  _tooltipPrefab: {fileID: 112748, guid: 2ee7d7b5160dfd44a86b91d18aadcb63, type: 2}
   _modalWindowsCanvas: {fileID: 0}
   _sampleimage: {fileID: 10900, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!4 &474104029
@@ -262,6 +263,7 @@ GameObject:
   - 222: {fileID: 861133336}
   - 114: {fileID: 861133335}
   - 114: {fileID: 861133334}
+  - 114: {fileID: 861133338}
   m_Layer: 5
   m_Name: Message1Button
   m_TagString: Untagged
@@ -367,6 +369,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 50}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: .5, y: .5}
+--- !u!114 &861133338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 861133333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2dc91f5778f147448cb41f5ee561c26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  msg: This button will show a simple message.
 --- !u!1 &1179575232
 GameObject:
   m_ObjectHideFlags: 0
@@ -444,6 +458,7 @@ GameObject:
   - 222: {fileID: 1192426645}
   - 114: {fileID: 1192426644}
   - 114: {fileID: 1192426643}
+  - 114: {fileID: 1192426646}
   m_Layer: 5
   m_Name: Message3Button
   m_TagString: Untagged
@@ -549,6 +564,18 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1192426641}
+--- !u!114 &1192426646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1192426641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2dc91f5778f147448cb41f5ee561c26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  msg: This button will show a message with two buttons.
 --- !u!1 &1475449397
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,6 +671,7 @@ GameObject:
   - 222: {fileID: 1801461711}
   - 114: {fileID: 1801461710}
   - 114: {fileID: 1801461709}
+  - 114: {fileID: 1801461712}
   m_Layer: 5
   m_Name: Message2Button
   m_TagString: Untagged
@@ -749,6 +777,18 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1801461707}
+--- !u!114 &1801461712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1801461707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2dc91f5778f147448cb41f5ee561c26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  msg: This button will show a message with a picture.
 --- !u!1 &1943702805
 GameObject:
   m_ObjectHideFlags: 0

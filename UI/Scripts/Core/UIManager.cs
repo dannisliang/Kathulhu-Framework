@@ -37,6 +37,9 @@
         private List<GameObject> _modalWindowPrefabs = new List<GameObject>();
 
         [SerializeField]
+        private GameObject _tooltipPrefab;
+
+        [SerializeField]
         private Canvas _modalWindowsCanvas;
 
         private PanelsIndexer _panels = new PanelsIndexer();
@@ -44,6 +47,8 @@
         private Dictionary<Type, ICommand> _commands;
 
         private List<UIModalWindow> _modalWindows = new List<UIModalWindow>();
+
+        private UITooltip _tooltip;
 
 
         protected virtual void Awake()
@@ -69,9 +74,20 @@
 
                     Transform modalWindowTransform = _modalWindowsCanvas.transform.InstantiateChild( windowPrefab );
                     modalWindowTransform.gameObject.SetActive( false );
+                    modalWindowTransform.gameObject.name = windowPrefab.name;
 
                     _modalWindows.Add( modalWindowTransform.GetComponent<UIModalWindow>() );
                 }
+            }
+
+            //Create tooltip instance
+            if ( _tooltipPrefab != null )
+            {
+                Transform tooltipTransform = _modalWindowsCanvas.transform.InstantiateChild( _tooltipPrefab );
+                tooltipTransform.gameObject.SetActive( false );
+                tooltipTransform.gameObject.name = "Tooltip";
+
+                _tooltip = tooltipTransform.GetComponent<UITooltip>();
             }
 
             Current = this;
@@ -93,7 +109,7 @@
             Canvas c = modalCanvas.AddComponent<Canvas>();
             c.renderMode = RenderMode.ScreenSpaceOverlay;
             c.pixelPerfect = true;
-            c.sortingOrder = 0;
+            c.sortingOrder = 1;
 
             modalCanvas.AddComponent<CanvasScaler>();
 
@@ -167,6 +183,10 @@
 
         #region ICommandAggregator members
 
+        /// <summary>
+        /// Registers an ICommand instance to the UIManager.
+        /// </summary>
+        /// <param name="command">The ICommand to reference in this UIManager</param>
         public void RegisterCommand( ICommand command )
         {
             Type t = command.GetType();
@@ -176,11 +196,19 @@
             }
         }
 
+        /// <summary>
+        /// Removes a command of type T from this UIManager
+        /// </summary>
+        /// <typeparam name="T">The type of the command to remove</typeparam>
         public void RemoveCommand<T>() where T : ICommand
         {
             _commands.Remove( typeof( T ) );
         }
 
+        /// <summary>
+        /// Executes a command of type T previously registered to this UIManager
+        /// </summary>
+        /// <typeparam name="T">The type of the command to execute</typeparam>
         public void ExecuteCommand<T>() where T : ICommand
         {
             Type t = typeof( T );
@@ -188,6 +216,11 @@
                 _commands[t].Execute();
         }
 
+        /// <summary>
+        /// Executes a command of type T previously registered to this UIManager
+        /// </summary>
+        /// <typeparam name="T">The type of the command to execute</typeparam>
+        /// <param name="args">An array of objects to use a arguments for the command</param>
         public void ExecuteCommand<T>( params object[] args ) where T : ICommand
         {
             Type t = typeof( T );
@@ -199,11 +232,25 @@
 
         #region Modal window management members
 
+        /// <summary>
+        /// Shows the default modal window with the given parameters
+        /// </summary>
+        /// <param name="title">The title of the modal window</param>
+        /// <param name="message">The message to display in the modal window</param>        
+        /// <param name="texture">Optional texture to display along with the text</param>
         public void ShowModalWindow( string title, string message, Texture2D texture = null )
         {
             ShowModalWindow( title, message, null, null, texture );
         }
 
+        /// <summary>
+        /// Shows the default modal window with the given parameters
+        /// </summary>
+        /// <param name="title">The title of the modal window</param>
+        /// <param name="message">The message to display in the modal window</param>
+        /// <param name="buttons">Array of strings to disply on buttons in the modal window</param>
+        /// <param name="callback">Delegate called when closing the modal window</param>
+        /// <param name="texture">Optional texture to display along with the text</param>
         public void ShowModalWindow( string title, string message, string[] buttons, Action<string> callback, Texture2D texture = null )
         {
             ModalWindowSettings settings = new ModalWindowSettings()
@@ -219,16 +266,78 @@
             ShowModalWindow( settings );
         }
 
+        /// <summary>
+        /// Opens the default modal window with the specified settings
+        /// </summary>
+        /// <param name="settings">The settings for the modal window</param>
         public void ShowModalWindow( ModalWindowSettings settings )
         {
             if ( _modalWindows.Count > 0 )
             {
                 _modalWindows[0].OpenModalWindow( settings );
+
+                HideTooltip();
+            }
+        }
+
+        /// <summary>
+        /// Opens the modal window specified by name with the specified settings
+        /// </summary>
+        /// <param name="settings">The settings for the modal window</param>
+        /// <param name="windowName">The name of the modal window to use (Prefab name)</param>
+        public void ShowModalWindow( ModalWindowSettings settings, string windowName )
+        {
+            UIModalWindow w = _modalWindows.FirstOrDefault( x => x.name == windowName );
+            if ( w != null )
+            {
+                w.OpenModalWindow( settings );
+
+                HideTooltip();
             }
         }
 
         #endregion
 
+        #region Tooltip management members
+
+        /// <summary>
+        /// Shows the tooltip with the specified message
+        /// </summary>
+        /// <param name="message">he message to display in the tooltip</param>
+        public void ShowTooltip( string message )
+        {
+            TooltipSettings settings = new TooltipSettings()
+            {
+                message = message,
+            };
+
+            ShowTooltip( settings );
+        }
+
+        /// <summary>
+        /// Shows the tooltip with the specified settings
+        /// </summary>
+        /// <param name="settings">The settings for the tooltip</param>
+        public void ShowTooltip( TooltipSettings settings )
+        {
+            if ( _tooltip != null )
+            {
+                _tooltip.ShowTooltip( settings );
+            }
+        }
+
+        /// <summary>
+        /// Hides the tooltip
+        /// </summary>
+        public void HideTooltip()
+        {
+            if ( _tooltip != null )
+            {
+                _tooltip.HideTooltip();
+            }
+        }
+
+        #endregion
     }
 
     public interface IPanelIndexer
