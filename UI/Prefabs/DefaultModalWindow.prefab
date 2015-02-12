@@ -300,7 +300,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   titleText: {fileID: 11480888}
   messageText: {fileID: 11480908}
-  image: {fileID: 11480912}
+  imageComponent: {fileID: 11480912}
   buttons:
   - {fileID: 180930}
   - {fileID: 180936}

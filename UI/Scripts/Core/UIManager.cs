@@ -50,6 +50,8 @@
 
         private UITooltip _tooltip;
 
+        private UIModalWindow _activeModalWindow;
+
 
         protected virtual void Awake()
         {
@@ -274,9 +276,7 @@
         {
             if ( _modalWindows.Count > 0 )
             {
-                _modalWindows[0].OpenModalWindow( settings );
-
-                HideTooltip();
+                ShowModalWindow( settings, _modalWindows[0].name );
             }
         }
 
@@ -287,13 +287,32 @@
         /// <param name="windowName">The name of the modal window to use (Prefab name)</param>
         public void ShowModalWindow( ModalWindowSettings settings, string windowName )
         {
-            UIModalWindow w = _modalWindows.FirstOrDefault( x => x.name == windowName );
-            if ( w != null )
+            if ( _activeModalWindow == null || !_activeModalWindow.gameObject.activeInHierarchy || settings.overrideActiveModalWindow )//make sure there isn't already a modal window 
             {
-                w.OpenModalWindow( settings );
-
-                HideTooltip();
+                UIModalWindow w = _modalWindows.FirstOrDefault( x => x.name == windowName );
+                if ( w != null )
+                {
+                    CloseActiveModalWindow();
+                    ShowModalWindow( settings, w );
+                }
+                else Debug.LogWarning( "Cannot find modal window with name '" + windowName + "'" );
             }
+            else Debug.LogWarning( "There already is an active modal window." );
+        }
+
+        private void CloseActiveModalWindow()
+        {
+            if ( _activeModalWindow != null && _activeModalWindow.gameObject.activeInHierarchy)
+            {
+                _activeModalWindow.CloseModalWindow();
+            }
+        }
+
+        private void ShowModalWindow( ModalWindowSettings settings, UIModalWindow window )
+        {
+            _activeModalWindow = window;
+            window.OpenModalWindow( settings );
+            HideTooltip();
         }
 
         #endregion

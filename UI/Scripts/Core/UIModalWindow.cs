@@ -16,7 +16,7 @@
         private Text messageText;
 
         [SerializeField]
-        private Image image;
+        private Image imageComponent;
 
         [SerializeField]
         private List<GameObject> buttons;
@@ -62,19 +62,19 @@
                 messageText.text = settings.message;
 
             //set the image            
-            if ( image != null )
+            if ( imageComponent != null )
             {
-                image.gameObject.SetActive( true );
+                imageComponent.gameObject.SetActive( true );
 
                 if ( settings.image == null )
                 {
-                    image.sprite = null;
-                    image.gameObject.SetActive( false );
+                    imageComponent.sprite = null;
+                    imageComponent.gameObject.SetActive( false );
                 }
                 else
                 {
-                    image.sprite = Sprite.Create( settings.image, new Rect( 0, 0, settings.image.width, settings.image.height ), new Vector2( 0.5f, 0.5f ) );
-                    image.gameObject.SetActive( true );
+                    imageComponent.sprite = Sprite.Create( settings.image, new Rect( 0, 0, settings.image.width, settings.image.height ), new Vector2( 0.5f, 0.5f ) );
+                    imageComponent.gameObject.SetActive( true );
                 }
             }
 
@@ -139,6 +139,7 @@
     /// </summary>
     public class ModalWindowSettings
     {
+        public bool overrideActiveModalWindow = false;
 
         public string title;
         public string message;
