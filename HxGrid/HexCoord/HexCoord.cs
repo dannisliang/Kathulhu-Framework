@@ -1,5 +1,8 @@
 namespace Kathulhu
 {
+
+    /// This class was found at the following adress : https://github.com/tejon/HexCoord
+
     using UnityEngine;
     using System;
     using System.Collections.Generic;
