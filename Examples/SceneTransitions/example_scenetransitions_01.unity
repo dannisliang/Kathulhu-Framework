@@ -153,8 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28be59aafd27f7e468c6c0925e3cb0eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _nextScene: kathulhu_scenetransitions_02
+  _nextScene: example_scenetransitions_02
   _additionalScenesToLoad:
-  - kathulhu_scenetransitions_02_add
+  - example_scenetransitions_02_add
   _additive: 0
   _useLoadingScreen: 1
