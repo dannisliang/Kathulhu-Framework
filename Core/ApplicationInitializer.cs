@@ -43,7 +43,7 @@
             if ( string.IsNullOrEmpty( _nextScene ) )
                 return;
 
-            GameController.LoadScene( _nextScene, _additive, _additionalScenesToLoad, _useLoadingScreen );
+            ApplicationController.LoadScene( _nextScene, _additive, _additionalScenesToLoad, _useLoadingScreen );
         }
     }
 }

@@ -5,23 +5,16 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System;
 
-    public class GameController : MonoBehaviour
+    public class ApplicationController : MonoBehaviour, ICommandAggregator
     {
 
-        public static GameController Instance { get; private set; }
+        public static ApplicationController Instance { get; private set; }
 
         //---------------------------------------
         //STATIC MEMBERS
         //---------------------------------------
-
-        /// <summary>
-        /// A registry for holding references to any object in the game
-        /// </summary>
-        public static IRegistry Registry
-        {
-            get { return _registry ?? ( _registry = new GameRegistry() ); }
-        }
 
         /// <summary>
         /// Returns the active scene manager. The active SceneManager is the last SceneManager that was added from a non-additive transition 
@@ -92,43 +85,18 @@
             Instance.StartCoroutine( Instance.Load( transition ) );
         }
 
-        /// <summary>
-        /// Executes a GameCommand via the GameController instance's CommandScheduler
-        /// </summary>
-        /// <param name="cmd">A GameCommand to execute</param>
-        public static void Execute( GameCommand cmd )
-        {
-            if ( Instance == null )
-                return;
-
-            Instance.ExecuteGameCommand( cmd );
-        }
-
-        /// <summary>
-        /// Enqueue a GameCommand in the GameController instance's CommandScheduler.
-        /// </summary>
-        /// <param name="cmd">A GameCommand to add to the execution queue</param>
-        public static void Enqeue( GameCommand cmd )
-        {
-            if ( Instance == null )
-                return;
-
-            Instance.EnqueueGameCommand( cmd );
-        }
-
-
-        private static GameRegistry _registry;
-
         //---------------------------------------
         //INSTANCE MEMBERS
         //---------------------------------------
 
         public GameObject LoadingScreenPrefab;//set in the inspector
 
-        private CommandScheduler _scheduler;
-
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
+
+        private Dictionary<Type, ICommand> _commands;
+        private List<IUpdatable> _updatables;
+        private List<IUpdatable> _updatablesToUnregister;
 
         private SceneTransitionBeginEvent beginTransitionEvent;
         private SceneTransitionCompleteEvent completeTransitionEvent;
@@ -143,6 +111,9 @@
             else
             {
                 _sceneManagers = new List<SceneManager>();
+                _commands = new Dictionary<Type, ICommand>();
+                _updatables = new List<IUpdatable>();
+                _updatablesToUnregister = new List<IUpdatable>();
 
                 beginTransitionEvent = new SceneTransitionBeginEvent();
                 completeTransitionEvent = new SceneTransitionCompleteEvent();
@@ -152,8 +123,16 @@
                 tag = "GameController";
                 DontDestroyOnLoad( gameObject );
 
-                _scheduler = GetComponent<CommandScheduler>();
+                Initialize();
             }
+        }
+
+        /// <summary>
+        /// Override to setup the Application
+        /// </summary>
+        protected virtual void Initialize()
+        {
+            
         }
 
         public void RegisterSceneManager( SceneManager sceneMgr )
@@ -166,6 +145,68 @@
             _sceneManagers.Remove( sceneMgr );
         }
 
+        #region ICommandAggregator members
+
+        public void RegisterCommand( ICommand command )
+        {
+            Type t = command.GetType();
+            if ( !_commands.ContainsKey( t ) || _commands[t] == null )
+            {
+                _commands[t] = command;
+            }
+        }
+
+        public void RemoveCommand<T>() where T : ICommand
+        {
+            _commands.Remove( typeof( T ) );
+        }
+
+        public void ExecuteCommand<T>() where T : ICommand
+        {
+            Type t = typeof( T );
+            if ( _commands.ContainsKey( t ) )
+                _commands[t].Execute();
+        }
+
+        public void ExecuteCommand<T>( params object[] args ) where T : ICommand
+        {
+            Type t = typeof( T );
+            if ( _commands.ContainsKey( t ) )
+                _commands[t].Execute( args );
+        }
+
+        #endregion
+
+        public void RegisterUpdatable( IUpdatable obj )
+        {
+            if ( obj is MonoBehaviour )
+            {
+                Debug.LogWarning( "RegisterUpdatable ignored because IUpdatable object is a MonoBehaviour." );
+                return;
+            }
+
+            if ( !_updatables.Contains( obj ) )
+                _updatables.Add( obj );
+        }
+
+        public void UnregisterUpdatable( IUpdatable obj )
+        {
+            _updatablesToUnregister.Add( obj );            
+        }
+
+        void Update()
+        {
+            //Update updatables
+            foreach ( var item in _updatables )
+                item.Update();
+
+            //Unregister updatables
+            foreach ( var item in _updatablesToUnregister ) 
+                _updatables.Remove( item );
+            _updatablesToUnregister.Clear();
+        }
+
+
         IEnumerator Load( SceneTransitionSettings transition )
         {
             //validate transition settings
@@ -174,9 +215,6 @@
             if ( string.IsNullOrEmpty( transition.scenes[0] ) ) yield break;
 
             //BEGIN THE TRANSITION
-
-            if ( !transition.additive && _scheduler != null )
-                _scheduler.Clear();
 
             //Raise "Load Scene" Event
             beginTransitionEvent.sceneName = transition.scenes[0];
@@ -263,22 +301,9 @@
 
         }
 
-        public void ExecuteGameCommand( GameCommand cmd )
-        {
-            if ( _scheduler == null )
-                _scheduler = gameObject.AddComponent<CommandScheduler>();
-
-            _scheduler.ExecuteCommand( cmd );
-        }
-
-        public void EnqueueGameCommand( GameCommand cmd )
-        {
-            if ( _scheduler == null )
-                _scheduler = gameObject.AddComponent<CommandScheduler>();
-
-            _scheduler.EnqueueCommand( cmd );
-        }
-
+        /// <summary>
+        /// Settings for a scene transition. Holds a list of scenes to lot as well as information on how to load these scenes.
+        /// </summary>
         private class SceneTransitionSettings
         {
             public List<string> scenes;
@@ -290,8 +315,8 @@
 
         }
 
-
     }
+
 
     /// <summary>
     /// Event for notifying subscribers that a scene loading will occur
@@ -305,7 +330,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load has progressed
     /// </summary>
-    public class LoadingProgressUpdateEvent : BaseEvent
+    public class SceneTransitionLoadingProgressUpdateEvent : BaseEvent
     {
         public float progress;
         public string message;

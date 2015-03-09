@@ -35,7 +35,7 @@
             _registry = new GameRegistry();
             _commands = new Dictionary<Type, ICommand>();
 
-            GameController.Instance.RegisterSceneManager( this );
+            ApplicationController.Instance.RegisterSceneManager( this );
         }
 
         /// <summary>
@@ -72,7 +72,7 @@
 
         protected virtual void OnDestroy()
         {
-            GameController.Instance.UnregisterSceneManager( this );
+            ApplicationController.Instance.UnregisterSceneManager( this );
         }
 
 

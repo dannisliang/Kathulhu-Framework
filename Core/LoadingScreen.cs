@@ -14,12 +14,12 @@
         {
             DontDestroyOnLoad( gameObject );
 
-            EventDispatcher.Subscribe<LoadingProgressUpdateEvent>( OnProgressChanged );
+            EventDispatcher.Subscribe<SceneTransitionLoadingProgressUpdateEvent>( OnProgressChanged );
         }
 
         private void OnProgressChanged( BaseEvent e )
         {
-            LoadingProgressUpdateEvent evt = e as LoadingProgressUpdateEvent;
+            SceneTransitionLoadingProgressUpdateEvent evt = e as SceneTransitionLoadingProgressUpdateEvent;
             OnProgressChange( evt );
         }
 
@@ -27,7 +27,7 @@
         /// Override this method to update the loading screen with the current progress
         /// </summary>
         /// <param name="evt">The event holding the current scene loading progress</param>
-        protected virtual void OnProgressChange( LoadingProgressUpdateEvent evt ) 
+        protected virtual void OnProgressChange( SceneTransitionLoadingProgressUpdateEvent evt ) 
         {
             if ( loadingBarFilledImage != null )
                 loadingBarFilledImage.fillAmount = evt.progress;
@@ -38,7 +38,7 @@
 
         protected virtual void OnDestroy()
         {
-            EventDispatcher.Unsubscribe<LoadingProgressUpdateEvent>( OnProgressChanged );
+            EventDispatcher.Unsubscribe<SceneTransitionLoadingProgressUpdateEvent>( OnProgressChanged );
         }
     }
 }
