@@ -25,6 +25,14 @@
             get { return Instance == null ? null : Instance._activeSceneManager; }
         }
 
+        /// <summary>
+        /// Returns the current scene transition. Returns null if there is no scene transition being processed at this time.
+        /// </summary>
+        public static SceneTransitionSettings CurrentTransition
+        {
+            get { return Instance == null ? null : Instance._currentTransition; }
+        }
+
         /// <summary>       
         /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
         /// </summary>
@@ -79,9 +87,20 @@
             {
                 scenes = scenes,
                 additive = additive,
+                useAsync = true,
                 useLoadingScreen = useLoadingScreen,
+                parameter = null,
             };
 
+            Instance.StartCoroutine( Instance.Load( transition ) );
+        }
+
+        /// <summary>
+        /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// </summary>
+        /// <param name="transition">The settings for the transition</param>
+        public static void LoadScene( SceneTransitionSettings transition )
+        {
             Instance.StartCoroutine( Instance.Load( transition ) );
         }
 
@@ -97,6 +116,8 @@
         private Dictionary<Type, ICommand> _commands;
         private List<IUpdatable> _updatables;
         private List<IUpdatable> _updatablesToUnregister;
+
+        private SceneTransitionSettings _currentTransition;
 
         private SceneTransitionBeginEvent beginTransitionEvent;
         private SceneTransitionCompleteEvent completeTransitionEvent;
@@ -132,7 +153,7 @@
         /// </summary>
         protected virtual void Initialize()
         {
-            
+
         }
 
         public void RegisterSceneManager( SceneManager sceneMgr )
@@ -191,7 +212,7 @@
 
         public void UnregisterUpdatable( IUpdatable obj )
         {
-            _updatablesToUnregister.Add( obj );            
+            _updatablesToUnregister.Add( obj );
         }
 
         void Update()
@@ -201,7 +222,7 @@
                 item.Update();
 
             //Unregister updatables
-            foreach ( var item in _updatablesToUnregister ) 
+            foreach ( var item in _updatablesToUnregister )
                 _updatables.Remove( item );
             _updatablesToUnregister.Clear();
         }
@@ -215,6 +236,16 @@
             if ( string.IsNullOrEmpty( transition.scenes[0] ) ) yield break;
 
             //BEGIN THE TRANSITION
+            
+            //Clone transition settings and make them available to external objects
+            _currentTransition = new SceneTransitionSettings()
+            {
+                scenes = transition.scenes,
+                additive = transition.additive,
+                useAsync = transition.useAsync,
+                useLoadingScreen = transition.useLoadingScreen,
+                parameter = transition.parameter,
+            };
 
             //Raise "Load Scene" Event
             beginTransitionEvent.sceneName = transition.scenes[0];
@@ -299,22 +330,25 @@
             completeTransitionEvent.sceneName = transition.scenes[0];
             EventDispatcher.Event( completeTransitionEvent );
 
+            //remove current transition settings
+            _currentTransition = null;
         }
 
-        /// <summary>
-        /// Settings for a scene transition. Holds a list of scenes to lot as well as information on how to load these scenes.
-        /// </summary>
-        private class SceneTransitionSettings
-        {
-            public List<string> scenes;
+    }
 
-            public bool additive;
+    /// <summary>
+    /// Settings for a scene transition. Holds a list of scenes to lot as well as information on how to load these scenes.
+    /// </summary>
+    public class SceneTransitionSettings
+    {
+        public List<string> scenes;
 
-            public bool useAsync = true;
-            public bool useLoadingScreen = true;
+        public bool additive;
 
-        }
+        public bool useAsync = true;
+        public bool useLoadingScreen = true;
 
+        public object parameter;
     }
 
 
