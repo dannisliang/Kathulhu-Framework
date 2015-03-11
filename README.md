@@ -5,3 +5,5 @@ Kathulhu-Framework is a Unity3D framework I created to invoke the Elder Gods for
 
 For more information on the framework, consult the wiki :
 https://github.com/DoomSamurai/Kathulhu-Framework/wiki
+
+NB. I am currently moving things around in this framework, redefining responsabilities and cleaning up a few things. Interfaces are bound to change. When Kathulhu-Framework is stable, it'll be set to v1.0.0
