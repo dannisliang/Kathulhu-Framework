@@ -2,7 +2,7 @@
 using System.Collections;
 using Kathulhu;
 
-public class BasicApplicationController : ApplicationController 
+public class BasicApplicationController : ApplicationController
 {
 
     [SerializeField]
@@ -26,6 +26,6 @@ public class BasicApplicationController : ApplicationController
 
         LoadScene( _nextScene, _additive, _additionalScenesToLoad, _useLoadingScreen );
     }
-    
+
 
 }

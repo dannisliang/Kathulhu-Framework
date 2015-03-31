@@ -219,7 +219,7 @@
         {
             //Update updatables
             foreach ( var item in _updatables )
-                item.Update();
+                item.DoUpdate();
 
             //Unregister updatables
             foreach ( var item in _updatablesToUnregister )

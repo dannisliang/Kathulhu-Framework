@@ -118,7 +118,7 @@
 
         protected virtual void OnComplete() { }
 
-        public void Update()
+        public void DoUpdate()
         {
             if ( State == CommandState.Running )
             {

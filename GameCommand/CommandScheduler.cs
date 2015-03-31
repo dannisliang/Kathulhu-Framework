@@ -26,13 +26,13 @@
 
             //Update current command
             if ( _current != null && _current.State == CommandState.Running )
-                _current.Update();
+                _current.DoUpdate();
 
             //Update queue
             if ( _queue.Count > 0 )
             {
                 if (_queue[0].State == CommandState.Running)
-                    _queue[0].Update();
+                    _queue[0].DoUpdate();
                 else
                 {
                     _queue.RemoveAt( 0 );
@@ -43,7 +43,7 @@
 
             //Update running commands
             foreach ( var cmd in _concurrentCommands )
-                cmd.Update();
+                cmd.DoUpdate();
             
 	    }
 
