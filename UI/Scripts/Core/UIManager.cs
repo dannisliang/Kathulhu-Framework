@@ -37,7 +37,7 @@
         private List<GameObject> _modalWindowPrefabs = new List<GameObject>();
 
         [SerializeField]
-        private GameObject _tooltipPrefab;
+        private List<GameObject> _tooltipPrefabs = new List<GameObject>();
 
         [SerializeField]
         private Canvas _modalWindowsCanvas;
@@ -48,7 +48,9 @@
 
         private List<UIModalWindow> _modalWindows = new List<UIModalWindow>();
 
-        private UITooltip _tooltip;
+        private List<UITooltip> _tooltips = new List<UITooltip>();
+
+        private UITooltip _activeTooltip;
 
         private UIModalWindow _activeModalWindow;
 
@@ -63,9 +65,9 @@
                 _modalWindowsCanvas = CreateModalWindowCanvas( _modalWindowsCanvas );
             }
 
-            //Create UIModalWindow instances
             if ( _modalWindowsCanvas != null )
             {
+                //Create UIModalWindow instances
                 foreach ( var windowPrefab in _modalWindowPrefabs )
                 {
                     if ( windowPrefab == null )
@@ -80,16 +82,19 @@
 
                     _modalWindows.Add( modalWindowTransform.GetComponent<UIModalWindow>() );
                 }
-            }
 
-            //Create tooltip instance
-            if ( _tooltipPrefab != null )
-            {
-                Transform tooltipTransform = _modalWindowsCanvas.transform.InstantiateChild( _tooltipPrefab );
-                tooltipTransform.gameObject.SetActive( false );
-                tooltipTransform.gameObject.name = "Tooltip";
+                //Create tooltip instances
+                foreach ( var tooltipPrefab in _tooltipPrefabs )
+                {
+                    if ( tooltipPrefab == null )
+                        continue;
 
-                _tooltip = tooltipTransform.GetComponent<UITooltip>();
+                    Transform tooltipTransform = _modalWindowsCanvas.transform.InstantiateChild( tooltipPrefab );
+                    tooltipTransform.gameObject.SetActive( false );
+                    tooltipTransform.gameObject.name = tooltipPrefab.name;
+
+                    _tooltips.Add( tooltipTransform.GetComponent<UITooltip>() );
+                }
             }
 
             Current = this;
@@ -302,7 +307,7 @@
 
         private void CloseActiveModalWindow()
         {
-            if ( _activeModalWindow != null && _activeModalWindow.gameObject.activeInHierarchy)
+            if ( _activeModalWindow != null && _activeModalWindow.gameObject.activeInHierarchy )
             {
                 _activeModalWindow.CloseModalWindow();
             }
@@ -334,14 +339,41 @@
         }
 
         /// <summary>
-        /// Shows the tooltip with the specified settings
+        /// Shows a tooltip with the specified settings
         /// </summary>
         /// <param name="settings">The settings for the tooltip</param>
         public void ShowTooltip( TooltipSettings settings )
         {
-            if ( _tooltip != null )
+            ShowTooltip( settings, _tooltips.FirstOrDefault() );
+        }
+
+        /// <summary>
+        /// Shows a tooltip with the specified settings
+        /// </summary>
+        /// <param name="settings">The settings for the tooltip</param>
+        /// <param name="tooltipName">The name of the tooltip prefab to use</param>
+        public void ShowModalWindow( TooltipSettings settings, string tooltipName )
+        {
+                UITooltip t = _tooltips.FirstOrDefault( x => x.name == tooltipName );
+                if ( t != null )
+                {
+                    ShowTooltip( settings, t );
+                }
+                else Debug.LogWarning( "Cannot find tooltip with name '" + tooltipName + "'" );
+        }
+
+        /// <summary>
+        /// Shows a tooltip with the specified settings
+        /// </summary>
+        /// <param name="settings">The settings for the tooltip</param>
+        /// <param name="tooltip">The instance of the tooltip to use</param>
+        private void ShowTooltip( TooltipSettings settings, UITooltip tooltip )
+        {
+            if ( tooltip != null )
             {
-                _tooltip.ShowTooltip( settings );
+                HideTooltip();
+                _activeTooltip = tooltip;
+                _activeTooltip.ShowTooltip( settings );
             }
         }
 
@@ -350,9 +382,9 @@
         /// </summary>
         public void HideTooltip()
         {
-            if ( _tooltip != null )
+            if ( _activeTooltip != null )
             {
-                _tooltip.HideTooltip();
+                _activeTooltip.HideTooltip();
             }
         }
 
