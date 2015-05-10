@@ -10,8 +10,12 @@
         [SerializeField]
         protected Text textComponent;
 
+        protected bool followCursor = true;
+
         private RectTransform _rect;
         private LayoutElement _layoutElement;
+        private Canvas _parentCanvas;
+        private RectTransform _parentCanvasRectTransform;
 
         protected override void Awake()
         {
@@ -19,6 +23,15 @@
 
             _rect = GetComponent<RectTransform>();
             _layoutElement = GetComponent<LayoutElement>();
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+
+            _parentCanvas = GetComponentInParent<Canvas>();
+            if ( _parentCanvas != null )
+                _parentCanvasRectTransform = _parentCanvas.transform as RectTransform;
         }
 
         /// <summary>
@@ -49,21 +62,39 @@
 
         void Update()
         {
-            Vector2 mousePos = Input.mousePosition;
+            if ( _parentCanvas == null )
+                return;
 
-            Vector2 halfsizedelta = _rect.sizeDelta * 0.5f;
+            if ( _parentCanvasRectTransform == null )
+                return;
 
-            if ( mousePos.x + _rect.sizeDelta.x > Screen.width )
-                mousePos.x -= halfsizedelta.x;
-            else
-                mousePos.x += halfsizedelta.x;
+            if ( followCursor )
+            {
+                Vector2 localPositionInCanvas = Vector2.zero;
+                Vector2 pivot = Vector2.zero;
 
-            if ( mousePos.y + _rect.sizeDelta.y > Screen.height )
-                mousePos.y -= halfsizedelta.y;
-            else
-                mousePos.y += halfsizedelta.y;
+                switch ( _parentCanvas.renderMode )
+                {
+                    case RenderMode.ScreenSpaceCamera:
+                        RectTransformUtility.ScreenPointToLocalPointInRectangle( _parentCanvasRectTransform, Input.mousePosition, _parentCanvas.worldCamera, out localPositionInCanvas );
+                        break;
+                    case RenderMode.ScreenSpaceOverlay:
+                        RectTransformUtility.ScreenPointToLocalPointInRectangle( _parentCanvasRectTransform, Input.mousePosition, null, out localPositionInCanvas );
+                        break;
+                    case RenderMode.WorldSpace:
+                        break;
+                    default:
+                        break;
+                }
 
-            _rect.position = mousePos;
+                if ( localPositionInCanvas.x + _rect.sizeDelta.x > ( _parentCanvasRectTransform.sizeDelta.x / 2 ) )
+                    pivot.x = 1;
+                if ( localPositionInCanvas.y + _rect.sizeDelta.y > ( _parentCanvasRectTransform.sizeDelta.y / 2 ) )
+                    pivot.y = 1;
+
+                _rect.pivot = pivot;
+                _rect.localPosition = localPositionInCanvas;
+            }
         }
 
         public void HideTooltip()
