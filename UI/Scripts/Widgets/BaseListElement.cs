@@ -53,10 +53,10 @@
         }
 
         /// <summary>
-        /// Override to update this UI element from it's selected state
+        /// Override to update this UI element's graphics depending on it's selected state
         /// </summary>
         /// <param name="selected">Whether this element is selected or not</param>
-        private virtual void SelectElement( bool selected )
+        protected virtual void SelectElement( bool selected )
         {
             //
         }
