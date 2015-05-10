@@ -27,9 +27,36 @@
         private T _elementData;
 
         /// <summary>
+        /// Property to set whether this element is selected or not
+        /// </summary>
+        public bool IsSelected
+        {
+            get
+            {
+                return _isSelected;
+            }
+            set
+            {
+                _isSelected = value;
+                SelectElement( _isSelected );
+            }
+        }
+
+        private bool _isSelected;
+
+        /// <summary>
         /// Method to request that the list element updates itself to display the data. Override to define how this BaseListElement component can display the element's data.
         /// </summary>
         public virtual void UpdateElement()
+        {
+            //
+        }
+
+        /// <summary>
+        /// Override to update this UI element from it's selected state
+        /// </summary>
+        /// <param name="selected">Whether this element is selected or not</param>
+        private virtual void SelectElement( bool selected )
         {
             //
         }

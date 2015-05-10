@@ -9,7 +9,7 @@
     public abstract class BaseSelectBox<T, L> : UIBehaviour where L : BaseList<T>
     {
 
-        public event Action<T> OnSelected;
+        public event Action<T> OnValueChanged;
 
         /// <summary>
         /// Returns the data held by the selected element's widget
@@ -17,6 +17,18 @@
         public T Value
         {
             get { return _selectedElement.Data; }
+            set
+            {
+                if ( !_listStayVisible )
+                    HideList();
+                
+                _selectedElement.Data = value;
+
+                OnSelectedValueChanged();
+
+                if ( OnValueChanged != null )
+                    OnValueChanged( value );
+            }
         }
 
         /// <summary>
@@ -108,21 +120,13 @@
         /// </summary>
         void SelectElement( BaseListElement<T> element )
         {
-            if ( !_listStayVisible )
-                HideList();
-
-            _selectedElement.Data = element.Data;
-
-            OnSelectionChanged();
-
-            if ( OnSelected != null )
-                OnSelected( Value );
+            Value = element.Data;
         }
 
         /// <summary>
         /// Override this method to add behaviour when the selected element's data changes
         /// </summary>
-        protected virtual void OnSelectionChanged()
+        protected virtual void OnSelectedValueChanged()
         {
             //
         }
