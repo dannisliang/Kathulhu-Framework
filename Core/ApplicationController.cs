@@ -41,14 +41,19 @@
         }
 
         /// <summary>
-        /// Returns the CommandDispatcher for the application
+        /// Returns the EventDispatcher for the application
         /// </summary>
         public static IEventDispatcher Events
         {
             get { return Instance == null ? null : Instance._eventDispatcher; }
         }
 
-        public static void ExecuteCommand<T>( T cmd ) where T : ICommand
+        /// <summary>
+        /// Send a command to the CommandDispatcher
+        /// </summary>
+        /// <typeparam name="T">The command type</typeparam>
+        /// <param name="cmd">The command</param>
+        public static void Execute<T>( T cmd ) where T : ICommand
         {
             if ( Instance != null )
             {
@@ -150,14 +155,14 @@
 
         void Update()
         {
-            //Update IUpdatable objects
-            foreach ( var item in _updatables )
-                item.DoUpdate();
-
             //Unregister IUpdatable
             foreach ( var item in _updatablesToUnregister )
                 _updatables.Remove( item );
             _updatablesToUnregister.Clear();
+
+            //Update IUpdatable objects
+            foreach ( var item in _updatables )
+                item.DoUpdate();
         }
 
         void ICommandHandler<SceneTransition>.Execute( SceneTransition cmd )
