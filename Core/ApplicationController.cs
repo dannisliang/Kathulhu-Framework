@@ -7,9 +7,8 @@
     using System.Linq;
     using System;
 
-    public class ApplicationController : MonoBehaviour, ICommandAggregator
+    public class ApplicationController : MonoBehaviour, ICommandHandler<SceneTransition>
     {
-
         public static ApplicationController Instance { get; private set; }
 
         //---------------------------------------
@@ -28,80 +27,33 @@
         /// <summary>
         /// Returns the current scene transition. Returns null if there is no scene transition being processed at this time.
         /// </summary>
-        public static SceneTransitionSettings CurrentTransition
+        public static SceneTransition CurrentTransition
         {
             get { return Instance == null ? null : Instance._currentTransition; }
         }
 
-        /// <summary>       
-        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// <summary>
+        /// Returns the CommandDispatcher for the application
         /// </summary>
-        /// <param name="scene">The name of the scene to load</param>        
-        public static void LoadScene( string scene )
+        public static ICommandDispatcher Commands
         {
-            LoadScene( scene, false );
-        }
-
-        /// <summary>       
-        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
-        /// </summary>
-        /// <param name="scene">The name of the scene to load</param>
-        /// <param name="additive">Whether we should load this scene additively</param>
-        public static void LoadScene( string scene, bool additive )
-        {
-            LoadScene( scene, additive, !additive );
-        }
-
-
-        /// <summary>       
-        /// Loading a scene with this method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
-        /// </summary>
-        /// <param name="scene">The name of the scene to load</param>
-        /// <param name="additive">Whether we should load this scene additively</param>
-        /// <param name="useLoadingScreen">Whether the loading screen should be displayed or not</param>
-        public static void LoadScene( string scene, bool additive, bool useLoadingScreen )
-        {
-            LoadScene( scene, additive, null, useLoadingScreen );
-        }
-
-        /// <summary>       
-        /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
-        /// </summary>
-        /// <param name="scene">The name of the scene to load</param>
-        /// <param name="additive">Whether we should load this scene additively</param>
-        /// <param name="additionalScenes">Additional scenes to load additively</param>
-        /// /// <param name="useLoadingScreen">Whether the loading screen should be displayed or not</param>
-        public static void LoadScene( string scene, bool additive, string[] additionalScenes, bool useLoadingScreen = true )
-        {
-            if ( Instance == null )
-                return;
-
-            List<string> scenes = new List<string>() { scene };
-            if ( additionalScenes != null && additionalScenes.Length > 0 )
-            {
-                foreach ( var item in additionalScenes )
-                    scenes.Add( item );
-            }
-
-            SceneTransitionSettings transition = new SceneTransitionSettings
-            {
-                scenes = scenes,
-                additive = additive,
-                useAsync = true,
-                useLoadingScreen = useLoadingScreen,
-                parameter = null,
-            };
-
-            Instance.StartCoroutine( Instance.Load( transition ) );
+            get { return Instance == null ? null : Instance._commandDispatcher; }
         }
 
         /// <summary>
-        /// Loading a scene from with method will raise the appropriate events to make sure that a SceneManager can execute any loading logic
+        /// Returns the CommandDispatcher for the application
         /// </summary>
-        /// <param name="transition">The settings for the transition</param>
-        public static void LoadScene( SceneTransitionSettings transition )
+        public static IEventDispatcher Events
         {
-            Instance.StartCoroutine( Instance.Load( transition ) );
+            get { return Instance == null ? null : Instance._eventDispatcher; }
+        }
+
+        public static void ExecuteCommand<T>( T cmd ) where T : ICommand
+        {
+            if ( Instance != null )
+            {
+                Instance._commandDispatcher.Execute<T>( cmd );
+            }
         }
 
         //---------------------------------------
@@ -110,17 +62,16 @@
 
         public GameObject LoadingScreenPrefab;//set in the inspector
 
+        private ICommandDispatcher _commandDispatcher;
+        private IEventDispatcher _eventDispatcher;
+
         private List<SceneManager> _sceneManagers;
         private SceneManager _activeSceneManager;
 
-        private Dictionary<Type, ICommand> _commands;
         private List<IUpdatable> _updatables;
         private List<IUpdatable> _updatablesToUnregister;
 
-        private SceneTransitionSettings _currentTransition;
-
-        private SceneTransitionBeginEvent beginTransitionEvent;
-        private SceneTransitionCompleteEvent completeTransitionEvent;
+        private SceneTransition _currentTransition;
 
         void Awake()
         {
@@ -132,19 +83,13 @@
             else
             {
                 _sceneManagers = new List<SceneManager>();
-                _commands = new Dictionary<Type, ICommand>();
                 _updatables = new List<IUpdatable>();
                 _updatablesToUnregister = new List<IUpdatable>();
-
-                beginTransitionEvent = new SceneTransitionBeginEvent();
-                completeTransitionEvent = new SceneTransitionCompleteEvent();
-
                 Instance = this;
 
-                tag = "GameController";
-                DontDestroyOnLoad( gameObject );
-
                 Initialize();
+
+                DontDestroyOnLoad( gameObject );
             }
         }
 
@@ -153,51 +98,35 @@
         /// </summary>
         protected virtual void Initialize()
         {
+            _commandDispatcher = new CommandDispatcher();
+            _eventDispatcher = new EventDispatcher();
+            //_eventDispatcher = new EventDispatcher();
 
+            Commands.RegisterHandler<SceneTransition>( this );
         }
 
-        public void RegisterSceneManager( SceneManager sceneMgr )
+        /// <summary>
+        /// Registers a SceneManager to the ApplicationController.
+        /// </summary>
+        /// <param name="sceneMgr">A SceneManager object</param>
+        internal void RegisterSceneManager( SceneManager sceneMgr )
         {
             _sceneManagers.Add( sceneMgr );
         }
 
-        public void UnregisterSceneManager( SceneManager sceneMgr )
+        /// <summary>
+        /// Unregisters a SceneManager from ApplicationController.
+        /// </summary>
+        /// <param name="sceneMgr">A SceneManager object</param>
+        internal void UnregisterSceneManager( SceneManager sceneMgr )
         {
             _sceneManagers.Remove( sceneMgr );
         }
 
-        #region ICommandAggregator members
-
-        public void RegisterCommand( ICommand command )
-        {
-            Type t = command.GetType();
-            if ( !_commands.ContainsKey( t ) || _commands[t] == null )
-            {
-                _commands[t] = command;
-            }
-        }
-
-        public void RemoveCommand<T>() where T : ICommand
-        {
-            _commands.Remove( typeof( T ) );
-        }
-
-        public void ExecuteCommand<T>() where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute();
-        }
-
-        public void ExecuteCommand<T>( params object[] args ) where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute( args );
-        }
-
-        #endregion
-
+        /// <summary>
+        /// Registers an IUpdatable object to the ApplicationController.
+        /// </summary>
+        /// <param name="obj">An IUpdatable object</param>
         public void RegisterUpdatable( IUpdatable obj )
         {
             if ( obj is MonoBehaviour )
@@ -210,6 +139,10 @@
                 _updatables.Add( obj );
         }
 
+        /// <summary>
+        /// Unregisters an IUpdatable object from the ApplicationController.
+        /// </summary>
+        /// <param name="obj">An IUpdatable object</param>
         public void UnregisterUpdatable( IUpdatable obj )
         {
             _updatablesToUnregister.Add( obj );
@@ -217,18 +150,22 @@
 
         void Update()
         {
-            //Update updatables
+            //Update IUpdatable objects
             foreach ( var item in _updatables )
                 item.DoUpdate();
 
-            //Unregister updatables
+            //Unregister IUpdatable
             foreach ( var item in _updatablesToUnregister )
                 _updatables.Remove( item );
             _updatablesToUnregister.Clear();
         }
 
+        void ICommandHandler<SceneTransition>.Execute( SceneTransition cmd )
+        {
+            StartCoroutine( Load( cmd ) );
+        }
 
-        IEnumerator Load( SceneTransitionSettings transition )
+        IEnumerator Load( SceneTransition transition )
         {
             //validate transition settings
             if ( transition == null ) yield break;
@@ -236,9 +173,9 @@
             if ( string.IsNullOrEmpty( transition.scenes[0] ) ) yield break;
 
             //BEGIN THE TRANSITION
-            
+
             //Clone transition settings and make them available to external objects
-            _currentTransition = new SceneTransitionSettings()
+            _currentTransition = new SceneTransition()
             {
                 scenes = transition.scenes,
                 additive = transition.additive,
@@ -248,8 +185,11 @@
             };
 
             //Raise "Load Scene" Event
-            beginTransitionEvent.sceneName = transition.scenes[0];
-            EventDispatcher.Event( beginTransitionEvent );
+            SceneTransitionStarted beginTransitionEvent = new SceneTransitionStarted()
+            {
+                sceneName = transition.scenes[0]
+            };
+            _eventDispatcher.Publish<SceneTransitionStarted>( beginTransitionEvent );
 
             //Add loading screen                        
             LoadingScreen loadingScreen = null;
@@ -327,8 +267,11 @@
             }
 
             //Raise "Scene Loaded" Event
-            completeTransitionEvent.sceneName = transition.scenes[0];
-            EventDispatcher.Event( completeTransitionEvent );
+            SceneTransitionCompleted completeTransitionEvent = new SceneTransitionCompleted()
+            {
+                sceneName = transition.scenes[0]
+            };
+            _eventDispatcher.Publish<SceneTransitionCompleted>( completeTransitionEvent );
 
             //remove current transition settings
             _currentTransition = null;
@@ -337,9 +280,9 @@
     }
 
     /// <summary>
-    /// Settings for a scene transition. Holds a list of scenes to lot as well as information on how to load these scenes.
+    /// Command to initiate a scene transition. Holds a list of scenes to load as well as information on how to load these scenes.
     /// </summary>
-    public class SceneTransitionSettings
+    public class SceneTransition : ICommand
     {
         public List<string> scenes;
 
@@ -355,7 +298,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene loading will occur
     /// </summary>
-    public class SceneTransitionBeginEvent : BaseEvent
+    public class SceneTransitionStarted : IEvent
     {
         public string sceneName;
         public bool additive;
@@ -364,7 +307,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load has progressed
     /// </summary>
-    public class SceneTransitionLoadingProgressUpdateEvent : BaseEvent
+    public class SceneTransitionProgressUpdate : IEvent
     {
         public float progress;
         public string message;
@@ -373,7 +316,7 @@
     /// <summary>
     /// Event for notifying subscribers that a scene load was completed
     /// </summary>
-    public class SceneTransitionCompleteEvent : BaseEvent
+    public class SceneTransitionCompleted : IEvent
     {
         public string sceneName;
     }

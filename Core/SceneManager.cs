@@ -10,7 +10,7 @@
     /// Abstract scene manager component that registers to the GameController and receives callbacks for the scene loading process.
     /// Override the appropriate methods in the concrete class to add scene loading logic.
     /// </summary>
-    public abstract class SceneManager : MonoBehaviour, ICommandAggregator
+    public abstract class SceneManager : MonoBehaviour
     {
 
         /// <summary>
@@ -26,14 +26,11 @@
             get { return _registry; }
         }
 
-
         private IRegistry _registry;
-        private Dictionary<Type, ICommand> _commands;
 
         protected virtual void Awake()
         {
             _registry = new GameRegistry();
-            _commands = new Dictionary<Type, ICommand>();
 
             ApplicationController.Instance.RegisterSceneManager( this );
         }
@@ -74,39 +71,6 @@
         {
             ApplicationController.Instance.UnregisterSceneManager( this );
         }
-
-
-        #region ICommandAggregator members
-
-        public void RegisterCommand( ICommand command )
-        {
-            Type t = command.GetType();
-            if ( !_commands.ContainsKey( t ) || _commands[t] == null )
-            {
-                _commands[t] = command;
-            }
-        }
-
-        public void RemoveCommand<T>() where T : ICommand
-        {
-            _commands.Remove( typeof( T ) );
-        }
-
-        public void ExecuteCommand<T>() where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute();
-        }
-
-        public void ExecuteCommand<T>( params object[] args ) where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute( args );
-        }
-
-        #endregion
 
     }
 }

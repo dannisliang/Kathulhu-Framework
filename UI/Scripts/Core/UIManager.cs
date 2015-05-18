@@ -7,7 +7,7 @@
     using System.Linq;
     using System;
 
-    public class UIManager : MonoBehaviour, ICommandAggregator
+    public class UIManager : MonoBehaviour
     {
         #region STATIC MEMBERS
 
@@ -44,8 +44,6 @@
 
         private PanelsIndexer _panels = new PanelsIndexer();
 
-        private Dictionary<Type, ICommand> _commands;
-
         private List<UIModalWindow> _modalWindows = new List<UIModalWindow>();
 
         private List<UITooltip> _tooltips = new List<UITooltip>();
@@ -57,8 +55,6 @@
 
         protected virtual void Awake()
         {
-            _commands = new Dictionary<Type, ICommand>();
-
             //Create Canvas for modal windows
             if ( _modalWindowsCanvas == null )
             {
@@ -186,56 +182,6 @@
                 return this.ToList();
             }
         }
-
-
-        #region ICommandAggregator members
-
-        /// <summary>
-        /// Registers an ICommand instance to the UIManager.
-        /// </summary>
-        /// <param name="command">The ICommand to reference in this UIManager</param>
-        public void RegisterCommand( ICommand command )
-        {
-            Type t = command.GetType();
-            if ( !_commands.ContainsKey( t ) || _commands[t] == null )
-            {
-                _commands[t] = command;
-            }
-        }
-
-        /// <summary>
-        /// Removes a command of type T from this UIManager
-        /// </summary>
-        /// <typeparam name="T">The type of the command to remove</typeparam>
-        public void RemoveCommand<T>() where T : ICommand
-        {
-            _commands.Remove( typeof( T ) );
-        }
-
-        /// <summary>
-        /// Executes a command of type T previously registered to this UIManager
-        /// </summary>
-        /// <typeparam name="T">The type of the command to execute</typeparam>
-        public void ExecuteCommand<T>() where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute();
-        }
-
-        /// <summary>
-        /// Executes a command of type T previously registered to this UIManager
-        /// </summary>
-        /// <typeparam name="T">The type of the command to execute</typeparam>
-        /// <param name="args">An array of objects to use a arguments for the command</param>
-        public void ExecuteCommand<T>( params object[] args ) where T : ICommand
-        {
-            Type t = typeof( T );
-            if ( _commands.ContainsKey( t ) )
-                _commands[t].Execute( args );
-        }
-
-        #endregion
 
         #region Modal window management members
 
