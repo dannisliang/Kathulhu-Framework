@@ -39,7 +39,7 @@ public class CommandDispatcher : ICommandDispatcher
             ICommandHandler<T> genericHandler = _handlers[t] as ICommandHandler<T>;
             genericHandler.Execute( cmd );
         }
-        else Debug.LogWarning( "No handler found for commant type " + t.ToString() );
+        else Debug.LogWarning( "No handler found for command type " + t.ToString() );
     }
 
 }
